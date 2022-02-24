@@ -35,3 +35,20 @@ void clearScreen() {
     interrupt(0x10, 0x03, 0, 0, 0);
     interrupt(0x10, 0x0200, 0x00, 0x0, 0x00);
 }
+
+void readString(char *string) {
+    int AX, num, i = 0;
+
+    while (true) {
+        num = interrupt(0x16, 0x00, 0x00, 0x00, 0x00);
+        if (num == '\r') {
+            break;
+        }
+        string[i] = num;
+
+        // print character on the screen
+        AX = 0x0E00 + num;
+        interrupt(0x10, AX, 0x0006, 0x0, 0x0);
+        i++;
+    }
+}
