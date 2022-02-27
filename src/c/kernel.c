@@ -9,13 +9,13 @@
 int main() {
     char *string = "Hello, World! This is MayanOS!! \r\n";
     char buf[128];
-    // ClearScreen also behave to set video mode 
+    // ClearScreen also behave to set video mode
     clearScreen();
     // makeInterrupt21();
     printString(string);
-    interrupt(0x10, 0x0200, 0x00, 0x0, 0x0002);
+    interrupt(0x10, 0x0200, 0x00, 0x0, 0x0200);
     readString(buf);
-    interrupt(0x10, 0x0200, 0x00, 0x0, 0x0002);
+    interrupt(0x10, 0x0200, 0x00, 0x0, 0x0300);
     printString(buf);
 
     while (true)
@@ -23,36 +23,48 @@ int main() {
 }
 
 void handleInterrupt21(int AX, int BX, int CX, int DX) {
-    // Definisi kosong
+    switch (AX) {
+    case 0x0:
+        printString(BX);
+        break;
+    case 0x1:
+        readString(BX);
+        break;
+    default:
+        printString("Invalid interrupt");
+    }
 }
 
 void printString(char *string) {
     int i = 0;
-    for (i = 0; i < strlen(string); i++) {
+    for (i = 0; i < strlen(string); i++)
+    {
         int AX = 0x0E00 + string[i];
-        interrupt(0x10, AX, 0x0006, 0x0, 0x0);
+        interrupt(0x10, AX, 0x0000, 0x0, 0x0);
     }
 }
 
 void clearScreen() {
     interrupt(0x10, 0x00, 0, 0, 0);
     interrupt(0x10, 0x03, 0, 0, 0);
-    interrupt(0x10, 0x0200, 0x00, 0x0, 0x00);
+    interrupt(0x10, 0x0200, 0x0, 0x0, 0x0);
 }
 
 void readString(char *string) {
     int AX, num, i = 0;
 
-    while (true) {
+    while (true)
+    {
         num = interrupt(0x16, 0x00, 0x00, 0x00, 0x00);
-        if (num == '\r') {
+        if (num == '\r')
+        {
             break;
         }
         string[i] = num;
 
         // print character on the screen
         AX = 0x0E00 + num;
-        interrupt(0x10, AX, 0x0006, 0x0, 0x0);
+        interrupt(0x10, AX, 0x0000, 0x0, 0x0);
         i++;
     }
 }
