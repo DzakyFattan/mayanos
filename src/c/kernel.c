@@ -7,19 +7,14 @@
 #include "header/kernel.h"
 
 int main() {
-    char *string = "Hello, World! This is MayanOS!! \r\n";
     char buf[128];
-    // ClearScreen also behave to set video mode
     clearScreen();
-    // makeInterrupt21();
-    printString(string);
-    interrupt(0x10, 0x0200, 0x00, 0x0, 0x0200);
+    makeInterrupt21();
+    printString("Hello, World! This is MayanOS!! \r\n");
     readString(buf);
-    interrupt(0x10, 0x0200, 0x00, 0x0, 0x0300);
     printString(buf);
 
-    while (true)
-        ;
+    while (true);
 }
 
 void handleInterrupt21(int AX, int BX, int CX, int DX) {
@@ -42,6 +37,7 @@ void printString(char *string) {
         int AX = 0x0E00 + string[i];
         interrupt(0x10, AX, 0x0000, 0x0, 0x0);
     }
+    interrupt(0x10, 0x0200, 0x00, 0x0, 0x0200);
 }
 
 void clearScreen() {
@@ -67,4 +63,5 @@ void readString(char *string) {
         interrupt(0x10, AX, 0x0000, 0x0, 0x0);
         i++;
     }
+    interrupt(0x10, 0x0200, 0x00, 0x0, 0x0300);
 }
