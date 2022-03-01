@@ -4,10 +4,13 @@ all: diskimage bootloader stdlib kernel
 # Recipes
 diskimage:
 	# TODO : Tambahkan untuk pembuatan image
+	dd if=/dev/zero of=out/system.img bs=512 count=2880
 	
 
 bootloader:
 	# TODO : Tambahkan untuk pembuatan bootloader
+	nasm src/asm/bootloader.asm -o out/bootloader
+	dd if=out/bootloader of=out/system.img bs=512 count=1 conv=notrunc
 
 kernel:
 	# TODO : Tambahkan untuk pembuatan kernel
