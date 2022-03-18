@@ -5,9 +5,9 @@ int div(int a, int b) {
     return a / b;
 }
 
-// int mod(int a, int n) {
-//     return a % n;
-// }
+int mod(int a, int n) {
+    return (a - n * (a / n));
+}
 
 void memcpy(byte *dest, byte *src, unsigned int n) {
     int i;
