@@ -8,13 +8,19 @@
 
 int main() {
     char buf[128];
-    void fillMap();
+    int* return_code;
+    struct file_metadata metadata;
+
+    fillMap();
     makeInterrupt21();
     clearScreen();
 
     printString("Hello, World! This is MayanOS!! \r\n");
-    readString(buf);
-    printString(buf);
+    // readString(buf);
+    // printString(buf);
+    
+    write(&metadata, return_code);
+
 
     while (true)
         ;
@@ -95,7 +101,7 @@ void writeSector(byte *buffer, int sector_number) {
 
     interrupt(
         0x13,                        // Interrupt number
-        0x0300 | sector_write_count, // AX
+        0x0301 | sector_write_count, // AX
         buffer,                      // BX
         cylinder | sector,           // CX
         head | drive                 // DX
@@ -151,13 +157,33 @@ void write(struct file_metadata *metadata, enum fs_retcode *return_code) {
     struct sector_filesystem sector_fs_buffer;
     struct map_filesystem map_fs_buffer;
     // Tambahkan tipe data yang dibutuhkan
-
+    int i;
+    int one_sector = 0x200;
+    
     // Masukkan filesystem dari storage ke memori
+    // map
+    readSector(map_fs_buffer.is_filled, FS_MAP_SECTOR_NUMBER);
+    
+    // node
+    readSector(node_fs_buffer.nodes, FS_NODE_SECTOR_NUMBER);
+    readSector(&node_fs_buffer.nodes[32], FS_NODE_SECTOR_NUMBER + 0x1);
+
+    // sector
+    readSector(sector_fs_buffer.sector_list, FS_SECTOR_SECTOR_NUMBER);
+    
+    return_code = FS_SUCCESS;
+
+    //
+    // for (i = 0; i < 512; i++) {
+    //     map_fs_buffer.is_filled[i] = FS_MAP_SECTOR_NUMBER * one_sector * (i + 1);
+    // }
+    
 
     // 1. Cari node dengan nama dan lokasi parent yang sama pada node.
     //    Jika tidak ditemukan kecocokan, lakukan proses ke-2.
     //    Jika ditemukan node yang cocok, tuliskan retcode
     //    FS_W_FILE_ALREADY_EXIST dan keluar.
+
 
     // 2. Cari entri kosong pada filesystem node dan simpan indeks.
     //    Jika ada entry kosong, simpan indeks untuk penulisan.
