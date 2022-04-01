@@ -18,8 +18,8 @@ int main() {
     clearScreen();
 
     printString("Hello, World! This is MayanOS!! \nNow it can write multiple line properly.\n");
-    // readString(buf);
-    // printString(buf);
+    shell();
+    // write(&metadata, return_code);
 
     read(&metadata, return_code);
 
@@ -299,14 +299,16 @@ void shell() {
 
     while (true) {
         printString("OS@IF2230:");
+        cursor_x += strlen("OS@IF2230:");
         // printCWD(path_str, current_dir);
-        printString("$");
+        printString("$ ");
+        cursor_x += 2;
         readString(input_buf);
 
-        // if (strcmp(input_buf, "cd") {
-        //       // Utility cd
-        // }
-        // else
-        //   printString("Unknown command\r\n");
+        if (strcmp(input_buf, "clear")) {
+            clearScreen();
+        } else {
+            printString("Unknown command\r\n");
+        }
     }
 }
