@@ -15,11 +15,11 @@ int main() {
     makeInterrupt21();
     clearScreen();
 
-    printString("Hello, World! This is MayanOS!! \r\n");
-    // readString(buf);
-    // printString(buf);
+    printString("Hello, World! This is MayanOS!! \nNow it can write multiple line properly.\n");
+    readString(buf);
+    printString(buf);
     
-    write(&metadata, return_code);
+    // write(&metadata, return_code);
 
 
     while (true)
@@ -54,12 +54,17 @@ void handleInterrupt21(int AX, int BX, int CX, int DX) {
 
 void printString(char *string) {
     int i = 0;
-    for (i = 0; i < strlen(string); i++)
-    {
-        int AX = 0x0E00 + string[i];
-        interrupt(0x10, AX, 0x0000, 0x0, 0x0);
+    for (i = 0; i < strlen(string); i++) {
+        if (string[i] == '\r' || string[i] == '\n') {
+            cursor_x = 0;
+            cursor_y += 0x0100;
+            interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y);
+        } else {
+            int AX = 0x0E00 + string[i];
+            interrupt(0x10, AX, 0x0000, 0x0, 0x0);
+            cursor_x++;
+        }
     }
-    interrupt(0x10, 0x0200, 0x00, 0x0, 0x0200);
 }
 
 void readString(char *string) {
@@ -70,6 +75,8 @@ void readString(char *string) {
         num = interrupt(0x16, 0x00, 0x00, 0x00, 0x00);
         if (num == '\r')
         {
+            cursor_x = 0;
+            cursor_y += 0x0100;
             break;
         }
         string[i] = num;
@@ -79,13 +86,15 @@ void readString(char *string) {
         interrupt(0x10, AX, 0x0000, 0x0, 0x0);
         i++;
     }
-    interrupt(0x10, 0x0200, 0x00, 0x0, 0x0300);
+    interrupt(0x10, 0x0200, 0x00, 0x0, cursor_y);
 }
 
 void clearScreen() {
     interrupt(0x10, 0x00, 0, 0, 0);
     interrupt(0x10, 0x03, 0, 0, 0);
     interrupt(0x10, 0x0200, 0x0, 0x0, 0x0);
+    cursor_x = 0x0;
+    cursor_y = 0x0;
 }
 
 void writeSector(byte *buffer, int sector_number) {
