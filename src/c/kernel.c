@@ -8,27 +8,27 @@
 
 int main() {
     char buf[128];
-    int* return_code;
+    int *return_code;
     struct file_metadata metadata;
+    metadata.node_name = "ABCD";
+    metadata.parent_index = 0x69;
 
     fillMap();
     makeInterrupt21();
     clearScreen();
 
     printString("Hello, World! This is MayanOS!! \nNow it can write multiple line properly.\n");
-    readString(buf);
-    printString(buf);
-    
-    // write(&metadata, return_code);
+    // readString(buf);
+    // printString(buf);
 
+    read(&metadata, return_code);
 
     while (true)
         ;
 }
 
 void handleInterrupt21(int AX, int BX, int CX, int DX) {
-    switch (AX)
-    {
+    switch (AX) {
     case 0x0:
         printString(BX);
         break;
@@ -70,11 +70,9 @@ void printString(char *string) {
 void readString(char *string) {
     int AX, num, i = 0;
 
-    while (true)
-    {
+    while (true) {
         num = interrupt(0x16, 0x00, 0x00, 0x00, 0x00);
-        if (num == '\r')
-        {
+        if (num == '\r') {
             cursor_x = 0;
             cursor_y += 0x0100;
             break;
@@ -147,13 +145,11 @@ void fillMap() {
     /*
       Edit filesystem map disini
                                */
-    for (i = 0; i <= 15; i++)
-    {
+    for (i = 0; i <= 15; i++) {
         map_fs_buffer.is_filled[i] = true;
     }
 
-    for (i = 256; i <= 511; i++)
-    {
+    for (i = 256; i <= 511; i++) {
         map_fs_buffer.is_filled[i] = true;
     }
 
@@ -168,31 +164,29 @@ void write(struct file_metadata *metadata, enum fs_retcode *return_code) {
     // Tambahkan tipe data yang dibutuhkan
     int i;
     int one_sector = 0x200;
-    
+
     // Masukkan filesystem dari storage ke memori
     // map
     readSector(map_fs_buffer.is_filled, FS_MAP_SECTOR_NUMBER);
-    
+
     // node
     readSector(node_fs_buffer.nodes, FS_NODE_SECTOR_NUMBER);
     readSector(&node_fs_buffer.nodes[32], FS_NODE_SECTOR_NUMBER + 0x1);
 
     // sector
     readSector(sector_fs_buffer.sector_list, FS_SECTOR_SECTOR_NUMBER);
-    
+
     return_code = FS_SUCCESS;
 
     //
     // for (i = 0; i < 512; i++) {
     //     map_fs_buffer.is_filled[i] = FS_MAP_SECTOR_NUMBER * one_sector * (i + 1);
     // }
-    
 
     // 1. Cari node dengan nama dan lokasi parent yang sama pada node.
     //    Jika tidak ditemukan kecocokan, lakukan proses ke-2.
     //    Jika ditemukan node yang cocok, tuliskan retcode
     //    FS_W_FILE_ALREADY_EXIST dan keluar.
-
 
     // 2. Cari entri kosong pada filesystem node dan simpan indeks.
     //    Jika ada entry kosong, simpan indeks untuk penulisan.
@@ -247,14 +241,40 @@ void write(struct file_metadata *metadata, enum fs_retcode *return_code) {
 void read(struct file_metadata *metadata, enum fs_retcode *return_code) {
     struct node_filesystem node_fs_buffer;
     struct sector_filesystem sector_fs_buffer;
-    // Tambahkan tipe data yang dibutuhkan
+    char *filename = metadata->node_name;
+    byte parent = metadata->parent_index;
+    byte node_index;
+    unsigned int i;
+    bool found = false;
 
     // Masukkan filesystem dari storage ke memori buffer
+    // node
+    readSector(&node_fs_buffer.nodes[0], FS_NODE_SECTOR_NUMBER);
+    readSector(&node_fs_buffer.nodes[32], FS_NODE_SECTOR_NUMBER + 0x1);
+
+    // sector
+    readSector(sector_fs_buffer.sector_list, FS_SECTOR_SECTOR_NUMBER);
 
     // 1. Cari node dengan nama dan lokasi yang sama pada filesystem.
     //    Jika ditemukan node yang cocok, lanjutkan ke langkah ke-2.
     //    Jika tidak ditemukan kecocokan, tuliskan retcode FS_R_NODE_NOT_FOUND
     //    dan keluar.
+    for (i = 0; i < 64 && !found; i++) {
+        // printString(node_fs_buffer.nodes[i].name);
+        // printString("\n");
+        if (strcmp(node_fs_buffer.nodes[i].name, filename) && node_fs_buffer.nodes[i].parent_node_index == parent) {
+            node_index = i;
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        *return_code = FS_R_NODE_NOT_FOUND;
+        return;
+    }
+
+    // *return_code = FS_SUCCESS;
 
     // 2. Cek tipe node yang ditemukan
     //    Jika tipe node adalah file, lakukan proses pembacaan.
@@ -277,7 +297,7 @@ void shell() {
     char path_str[128];
     byte current_dir = FS_NODE_P_IDX_ROOT;
 
-    while (true)     {
+    while (true) {
         printString("OS@IF2230:");
         // printCWD(path_str, current_dir);
         printString("$");
@@ -286,7 +306,7 @@ void shell() {
         // if (strcmp(input_buf, "cd") {
         //       // Utility cd
         // }
-        // else 
+        // else
         //   printString("Unknown command\r\n");
     }
 }
