@@ -24,10 +24,17 @@ int main() {
     fillMap();
     makeInterrupt21();
     clearScreen();
+    printString("Hello, World! This is MayanOS!!\r\n");
 
-    printString("Hello, World! This is MayanOS!! \nNow it can write multiple line properly.\n");
+    printString(":::=======  :::====  ::: === :::====  :::= === :::====  :::=== \n");
+    printString("::: === === :::  === ::: === :::  === :::===== :::  === :::    \n");
+    printString("=== === === ========  =====  ======== ======== ===  ===  ===== \n");
+    printString("===     === ===  ===   ===   ===  === === ==== ===  ===     ===\n");
+    printString("===     === ===  ===   ===   ===  === ===  ===  ======  ====== \n");
+
+    printString("\nNow it can write multiple line properly.\r\n");
     writeSector("gura sayang", 0x10);
-    // shell();
+    shell();
     // write(&metadata, return_code);
     printString("Number test: \n");
     printNumber(0);
@@ -125,6 +132,7 @@ void readString(char *string) {
         AX = 0x0E00 + num;
         interrupt(0x10, AX, 0x0000, 0x0, 0x0);
         i++;
+        cursor_x++;
     }
     interrupt(0x10, 0x0200, 0x00, 0x0, cursor_y);
 }
@@ -449,6 +457,7 @@ void read(struct file_metadata *metadata, enum fs_retcode *return_code) {
 void shell() {
     char input_buf[64];
     char path_str[128];
+    int scrollLine;
     byte current_dir = FS_NODE_P_IDX_ROOT;
 
     while (true) {
@@ -456,7 +465,7 @@ void shell() {
         cursor_x += strlen("OS@IF2230:");
         // printCWD(path_str, current_dir);
         printString("$ ");
-        cursor_x += 2;
+        cursor_x += 0x2;
         readString(input_buf);
 
         if (strcmp(input_buf, "clear")) {

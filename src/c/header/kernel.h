@@ -10,7 +10,7 @@ extern int cursor_y = 0x0;
 
 // Fungsi bawaan
 extern void putInMemory(int segment, int address, byte b);
-extern int interrupt (int int_number, int* AX, int* BX, int* CX, int* DX);
+extern int interrupt (int int_number, int AX, int BX, int CX, int DX);
 extern void makeInterrupt21();
 void handleInterrupt21(int AX, int BX, int CX, int DX);
 void fillKernelMap();
