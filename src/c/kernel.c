@@ -118,13 +118,32 @@ void printNumber(int number) {
 
 void readString(char *string) {
     int AX, num, i = 0;
-
+    int j = 0;
     while (true) {
         num = interrupt(0x16, 0x00, 0x00, 0x00, 0x00);
-        if (num == '\r') {
+        if (num == 13) {
             cursor_x = 0;
             cursor_y += 0x0100;
             break;
+        } else if (num == 8) {
+            if (i > 0) {
+                cursor_x--;
+                interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y + cursor_x);
+                interrupt(0x10, 0x0A00, 0x0000, i + 1, 0x0);
+                string[i] = 0;
+                i--;
+            }
+            continue;
+
+        } else if (num == 27) {
+            clear(string, i+1);
+            while (i != 0) {
+                cursor_x--;
+                interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y + cursor_x);
+                interrupt(0x10, 0x0A00, 0x0000, i + 1, 0x0);
+                i--;
+            }
+            continue;
         }
         string[i] = num;
 
@@ -462,10 +481,10 @@ void shell() {
 
     while (true) {
         printString("OS@IF2230:");
-        cursor_x += strlen("OS@IF2230:");
+        cursor_x = strlen("OS@IF2230:");
         // printCWD(path_str, current_dir);
         printString("$ ");
-        cursor_x += 0x2;
+
         readString(input_buf);
 
         if (strcmp(input_buf, "clear")) {
