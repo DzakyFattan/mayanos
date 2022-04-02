@@ -4,9 +4,13 @@
 #include "std_lib.h"
 #include "filesystem.h"
 
-// variabel untuk ngetrack posisi cursor
+// variabel untuk tracking posisi cursor
 extern int cursor_x = 0x0;
 extern int cursor_y = 0x0;
+
+// variabel untuk tracking posisi window
+extern int window_y0 = 0x0;
+extern int window_y25 = 0x1950;
 
 // Fungsi bawaan
 extern void putInMemory(int segment, int address, byte b);
@@ -20,7 +24,9 @@ void printNumber(int number);
 // Implementasikan
 void printString(char *string);
 void readString(char *string);
+
 void clearScreen();
+
 
 void writeSector(byte *buffer, int sector_number);
 void readSector(byte *buffer, int sector_number);
@@ -29,3 +35,5 @@ void write(struct file_metadata *metadata, enum fs_retcode *return_code);
 void read(struct file_metadata *metadata, enum fs_retcode *return_code);
 
 void shell();
+void scrollController(int lines);
+void argParser(char *command, char *argv[]);

@@ -32,7 +32,7 @@ int main() {
     printString("===     === ===  ===   ===   ===  === === ==== ===  ===     ===\n");
     printString("===     === ===  ===   ===   ===  === ===  ===  ======  ====== \n");
 
-    printString("\nNow it can write multiple line properly.\r\n");
+    printString("\nMaya siap membantu Trainer-chan, You Copy?! ( ^ w ^)7\r\n");
     writeSector("gura sayang", 0x10);
     shell();
     // write(&metadata, return_code);
@@ -41,12 +41,9 @@ int main() {
     printString("\n");
 
     // if (return_code == FS_SUCCESS) printString("ok!\n");
-
     shell();
-
     read(&metadata, return_code);
     // printString(metadata.buffer);
-
     while (true)
         ;
 }
@@ -77,11 +74,16 @@ void handleInterrupt21(int AX, int BX, int CX, int DX) {
 }
 
 void printString(char *string) {
-    int i = 0;
+    int i, scrollLine = 0;
     for (i = 0; i < strlen(string); i++) {
         if (string[i] == '\r' || string[i] == '\n') {
             cursor_x = 0;
             cursor_y += 0x0100;
+            if (cursor_y >= 0x1900) {
+                scrollLine = div(cursor_y - 0x1800, 0x100);
+                scrollController(scrollLine);
+                cursor_y = 0x1900 - (scrollLine * 0x100);
+            }
             interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y);
         } else {
             int AX = 0x0E00 + string[i];
@@ -117,13 +119,19 @@ void printNumber(int number) {
 }
 
 void readString(char *string) {
-    int AX, num, i = 0;
+    int AX, scrollLine, num, i = 0;
     int j = 0;
     while (true) {
         num = interrupt(0x16, 0x00, 0x00, 0x00, 0x00);
         if (num == 13) {
             cursor_x = 0;
             cursor_y += 0x0100;
+            if (cursor_y >= 0x1900) {
+                scrollLine = div(cursor_y - 0x1800, 0x100);
+                scrollController(scrollLine);
+                cursor_y = 0x1900 - (scrollLine * 0x100);
+                interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y);
+            }
             break;
         } else if (num == 8) {
             if (i > 0) {
@@ -162,6 +170,7 @@ void clearScreen() {
     interrupt(0x10, 0x0200, 0x0, 0x0, 0x0);
     cursor_x = 0x0;
     cursor_y = 0x0;
+    interrupt(0x10, 0x0700, 0x0700, 0x0, 0x1950);
 }
 
 void writeSector(byte *buffer, int sector_number) {
@@ -489,8 +498,42 @@ void shell() {
 
         if (strcmp(input_buf, "clear")) {
             clearScreen();
+        } else if (strcmp(input_buf, "scroll")) {
+            scrollController(1);
+        } else if (strcmp(input_buf, "Aku sayang Maya-chin")) {
+            printString("Maya juga sayang Trainer-chan ^///^\r\n");
+        } else if (strcmp(input_buf, "exit")) {
+            break;
+        } else if (strcmp(input_buf, "ls")) {
+            printString("ls\n");
+        } else if (strcmp(input_buf, "cd")) {
+            printString("cd\n");
+        } else if (strcmp(input_buf, "mkdir")) {
+            printString("mkdir\n");
+        } else if (strcmp(input_buf, "rm")) {
+            printString("rrmad\n");
+        } else if (strcmp(input_buf, "cat")) {
+            printString("cat\n");
+        } else if (strcmp(input_buf, "write")) {
+            printString("write\n");
+        } else if (strcmp(input_buf, "read")) {
+            printString("read\n");
+        } else if (strcmp(input_buf, "curloc")) {
+            printNumber(cursor_x);
+            printString(" ");
+            printNumber(cursor_y);
+            printString("\n");
         } else {
-            printString("Unknown command\r\n");
+            printString("Maya ngga ngerti perintah Trainer-chan (# -_-)\r\n");
+        }
+    }
+}
+
+void scrollController(int lines) {
+    int i;
+    if (lines < 256) {
+        for (i = 0; i < lines; i++) {
+            interrupt(0x10, 0x0600 + lines, 0x0700, 0x0, 0x1950);
         }
     }
 }
