@@ -10,13 +10,15 @@ int main() {
     char buf[128];
     enum fs_retcode return_code;
     struct file_metadata metadata_file;
+    struct file_metadata metadata_read;
     struct file_metadata metadata_folder;
-    byte metadata_buf[512];
+    byte metadata_buf[1024];
+    byte metadata_read_buf[8192];
     int i;
 
     metadata_file.node_name = "file";
     metadata_file.parent_index = 0xFF;
-    metadata_file.filesize = 512;
+    metadata_file.filesize = 1024;
     
     metadata_folder.node_name = "folderrr";
     metadata_folder.parent_index = 0xFF;
@@ -53,7 +55,14 @@ int main() {
     metadata_file.buffer = metadata_buf;
     write(&metadata_file, &return_code);
     write(&metadata_folder, &return_code);
-    // writeSector(metadata_file.buffer, 0x11);
+
+    metadata_read.node_name = "file";
+    metadata_read.parent_index = 0xFF;
+    metadata_read.buffer = metadata_read_buf;
+    read(&metadata_read, &return_code);
+    printString("From file: ");
+    printString(metadata_read.buffer);
+    printString("\n");
     // END DEBUG
 
     printString(":::=======  :::====  ::: === :::====  :::= === :::====  :::=== \n");
@@ -68,10 +77,7 @@ int main() {
     printString("Number test: \n");
     printString("\n");
 
-    // if (return_code == FS_SUCCESS) printString("ok!\n");
     shell();
-    read(&metadata_file, return_code);
-    // printString(metadata.buffer);
     while (true)
         ;
 }
@@ -344,9 +350,6 @@ void write(struct file_metadata *metadata, enum fs_retcode *return_code) {
         sector_needed = (metadata->filesize + 512 - 1) / 512;
     }
 
-    // printString("sector needed: ");
-    // printNumber(sector_needed);
-    // printString("\n");
     sector_available = 0;
     for (i = 0; i < 32; i++) {
         if (!map_fs_buffer.is_filled[i]) {
@@ -357,9 +360,6 @@ void write(struct file_metadata *metadata, enum fs_retcode *return_code) {
         *return_code = FS_W_NOT_ENOUGH_STORAGE;
         return;
     }
-    // printString("sector available: ");
-    // printNumber(sector_available);
-    // printString("\n");
 
     // 5. Cek pada filesystem sector apakah terdapat entry yang masih kosong.
     //    Jika ada entry kosong dan akan menulis file, simpan indeks untuk
@@ -449,7 +449,6 @@ void read(struct file_metadata *metadata, enum fs_retcode *return_code) {
     struct node_filesystem node_fs_buffer;
     struct sector_filesystem sector_fs_buffer;
     char *filename = metadata->node_name;
-    byte *buffer;
     byte *test = 0x61;
     byte parent = metadata->parent_index;
     byte node_index;
@@ -499,25 +498,18 @@ void read(struct file_metadata *metadata, enum fs_retcode *return_code) {
     // Pembacaan
     // 1. memcpy() entry sector sesuai dengan byte S
     memcpy(sector_nums_buffer, sector_fs_buffer.sector_list[sector_entry_index].sector_numbers, 16);
+    
     // 2. Lakukan iterasi proses berikut, i = 0..15
     // 3. Baca byte entry sector untuk mendapatkan sector number partisi file
     // 4. Jika byte bernilai 0, selesaikan iterasi
     // 5. Jika byte valid, lakukan readSector()
     //    dan masukkan kedalam buffer yang disediakan pada metadata
     // 6. Lompat ke iterasi selanjutnya hingga iterasi selesai
-    readSector(buffer, sector_nums_buffer[0]);
-    printString(buffer);
-
-    printString("\nnyampe kok\n");
     for (i = 0; i < 16; i++) {
         if (sector_nums_buffer[i] == 0) {
-            printString("berak\n");
             break;
         }
-        // printString(&(sector_nums_buffer[i]));
-        // printString("\n");
-        // metadata->buffer = malloc(512);
-        // memcpy(metadata->buffer, buffer, 512);
+        readSector(&(metadata->buffer[i*512]), sector_nums_buffer[i]);
     }
 
     // memcpy(*metadata->buffer, test, 1);
