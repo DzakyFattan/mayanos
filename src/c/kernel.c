@@ -567,9 +567,6 @@ void shell() {
         }
         strclr(input_buf);
         strclr(path_str);
-        for (i = 0; i < 4; i++) {
-            strclr(args[i]);
-        }
     }
 }
 
