@@ -22,5 +22,8 @@ bool strcmp(char *s1, char *s2);
 void strcpy(char *dst, char *src);
 // Melakukan penyalinan null terminated string
 
+void strclr(char *string);
+// Melakukan penghapusan string
+
 void clear(byte *ptr, unsigned int n);
 // Mengosongkan byte array yang memiliki panjang n

@@ -8,10 +8,6 @@
 extern int cursor_x = 0x0;
 extern int cursor_y = 0x0;
 
-// variabel untuk tracking posisi window
-extern int window_y0 = 0x0;
-extern int window_y25 = 0x1950;
-
 // Fungsi bawaan
 extern void putInMemory(int segment, int address, byte b);
 extern int interrupt (int int_number, int AX, int BX, int CX, int DX);
@@ -35,5 +31,5 @@ void write(struct file_metadata *metadata, enum fs_retcode *return_code);
 void read(struct file_metadata *metadata, enum fs_retcode *return_code);
 
 void shell();
+
 void scrollController(int lines);
-void argParser(char *command, char *argv[]);

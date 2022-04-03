@@ -521,7 +521,10 @@ void read(struct file_metadata *metadata, enum fs_retcode *return_code) {
 void shell() {
     char input_buf[64];
     char path_str[128];
+
+    int i = 0;
     int scrollLine;
+
     byte current_dir = FS_NODE_P_IDX_ROOT;
 
     while (true) {
@@ -561,6 +564,11 @@ void shell() {
             printString("\n");
         } else {
             printString("Maya ngga ngerti perintah Trainer-chan (# -_-)\r\n");
+        }
+        strclr(input_buf);
+        strclr(path_str);
+        for (i = 0; i < 4; i++) {
+            strclr(args[i]);
         }
     }
 }

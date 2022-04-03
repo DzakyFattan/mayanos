@@ -41,6 +41,13 @@ void strcpy(char *dst, char *src) {
     }
 }
 
+void strclr(char *string) {
+    int i;
+    for (i = 0; i < strlen(string); i++) {
+        string[i] = '\0';
+    }
+}
+
 void clear(byte *ptr, unsigned int n) {
     int i;
     for (i = 0; i < n; i++) {
