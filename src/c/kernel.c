@@ -8,23 +8,53 @@
 
 int main() {
     char buf[128];
-    int *return_code;
-    struct file_metadata metadata;
-    byte metadata_buf[16];
+    enum fs_retcode return_code;
+    struct file_metadata metadata_file;
+    struct file_metadata metadata_folder;
+    byte metadata_buf[512];
     int i;
-    metadata.node_name = "ABCD";
-    metadata.parent_index = 0xFF;
-    metadata.filesize = 16;
 
-    for (i = 0; i < 16; i++) {
-        metadata_buf[i] = i;
-    }
-    metadata.buffer = metadata_buf;
+    metadata_file.node_name = "file";
+    metadata_file.parent_index = 0xFF;
+    metadata_file.filesize = 512;
+    
+    metadata_folder.node_name = "folderrr";
+    metadata_folder.parent_index = 0xFF;
+    metadata_folder.filesize = 0;
 
     fillMap();
     makeInterrupt21();
     clearScreen();
-    printString("Hello, World! This is MayanOS!!\r\n");
+    printString("\nHello, World! This is MayanOS!!\r\n");
+
+    // DEBUG
+    metadata_buf[0] = 'K';
+    metadata_buf[1] = 'E';
+    metadata_buf[2] = 'Q';
+    metadata_buf[3] = 'I';
+    metadata_buf[4] = 'N';
+    metadata_buf[5] = 'G';
+    metadata_buf[6] = 'W';
+    metadata_buf[7] = 'A';
+    metadata_buf[8] = 'N';
+    metadata_buf[9] = 'G';
+    metadata_buf[10] = 'Y';
+    metadata_buf[11] = 'Y';
+    metadata_buf[12] = 'Y';
+    metadata_buf[13] = 'Y';
+    metadata_buf[14] = 'Y';
+    metadata_buf[15] = '\0';
+    for (i = 16; i < 300; i++) {
+        metadata_buf[i] = 'A';
+    } 
+    for (i = 400; i < 512; i++) {
+        metadata_buf[i] = 'B';
+    }
+    metadata_file.buffer = metadata_buf;
+    write(&metadata_file, &return_code);
+    write(&metadata_folder, &return_code);
+    // writeSector(metadata_file.buffer, 0x11);
+    // END DEBUG
 
     printString(":::=======  :::====  ::: === :::====  :::= === :::====  :::=== \n");
     printString("::: === === :::  === ::: === :::  === :::===== :::  === :::    \n");
@@ -33,16 +63,14 @@ int main() {
     printString("===     === ===  ===   ===   ===  === ===  ===  ======  ====== \n");
 
     printString("\nMaya siap membantu Trainer-chan, You Copy?! ( ^ w ^)7\r\n");
-    writeSector("gura sayang", 0x10);
+    // writeSector("gura sayang", 0x10);
     shell();
-    // write(&metadata, return_code);
     printString("Number test: \n");
-    printNumber(0);
     printString("\n");
 
     // if (return_code == FS_SUCCESS) printString("ok!\n");
     shell();
-    read(&metadata, return_code);
+    read(&metadata_file, return_code);
     // printString(metadata.buffer);
     while (true)
         ;
@@ -253,11 +281,9 @@ void write(struct file_metadata *metadata, enum fs_retcode *return_code) {
     // Masukkan filesystem dari storage ke memori
     // map
     readSector(map_fs_buffer.is_filled, FS_MAP_SECTOR_NUMBER);
-
     // node
     readSector(node_fs_buffer.nodes, FS_NODE_SECTOR_NUMBER);
     readSector(&node_fs_buffer.nodes[32], FS_NODE_SECTOR_NUMBER + 0x1);
-
     // sector
     readSector(sector_fs_buffer.sector_list, FS_SECTOR_SECTOR_NUMBER);
 
@@ -289,13 +315,18 @@ void write(struct file_metadata *metadata, enum fs_retcode *return_code) {
         return;
     }
 
+
     // 3. Cek dan pastikan entry node pada indeks P adalah folder.
     //    Jika pada indeks tersebut adalah file atau entri kosong,
     //    Tuliskan retcode FS_W_INVALID_FOLDER dan keluar.
-    parent_node_index = node_fs_buffer.nodes[i].parent_node_index;
-    if (node_fs_buffer.nodes[parent_node_index].sector_entry_index != 0xFF) {
-        *return_code = FS_W_INVALID_FOLDER;
-        return;
+    parent_node_index = metadata->parent_index;
+
+    // Jika file/folder tidak terletak di root
+    if (parent_node_index != 0xFF) {
+        if (node_fs_buffer.nodes[parent_node_index].sector_entry_index != 0xFF) {
+            *return_code = FS_W_INVALID_FOLDER;
+            return;
+        }
     }
 
     // 4. Dengan informasi metadata filesize, hitung sektor-sektor
@@ -306,7 +337,16 @@ void write(struct file_metadata *metadata, enum fs_retcode *return_code) {
     //    Jika ukuran filesize melebihi 8192 bytes, tuliskan retcode
     //    FS_W_NOT_ENOUGH_STORAGE dan keluar.
     //    Jika tersedia empty space, lanjutkan langkah ke-5.
-    sector_needed = metadata->filesize / 512;
+    if (metadata->filesize == 0) {
+        sector_needed = 0;
+    } else {
+        // ceil division
+        sector_needed = (metadata->filesize + 512 - 1) / 512;
+    }
+
+    // printString("sector needed: ");
+    // printNumber(sector_needed);
+    // printString("\n");
     sector_available = 0;
     for (i = 0; i < 32; i++) {
         if (!map_fs_buffer.is_filled[i]) {
@@ -317,6 +357,9 @@ void write(struct file_metadata *metadata, enum fs_retcode *return_code) {
         *return_code = FS_W_NOT_ENOUGH_STORAGE;
         return;
     }
+    // printString("sector available: ");
+    // printNumber(sector_available);
+    // printString("\n");
 
     // 5. Cek pada filesystem sector apakah terdapat entry yang masih kosong.
     //    Jika ada entry kosong dan akan menulis file, simpan indeks untuk
@@ -377,8 +420,10 @@ void write(struct file_metadata *metadata, enum fs_retcode *return_code) {
         while (!finished && i <= 255) {
             if (!map_fs_buffer.is_filled[i]) {
                 map_fs_buffer.is_filled[i] = true;
+
                 sector_entry_buf.sector_numbers[j] = i;
                 j++;
+                
                 writeSector(&metadata->buffer[current_writing_byte], i);
 
                 current_writing_byte += 512;
@@ -390,13 +435,12 @@ void write(struct file_metadata *metadata, enum fs_retcode *return_code) {
         }
         // 7
         memcpy(sector_fs_buffer.sector_list[empty_entry_index].sector_numbers, sector_entry_buf.sector_numbers, 16);
-
-        // 8
-        writeSector(map_fs_buffer.is_filled, 0x100);
-        writeSector(&node_fs_buffer.nodes[0], 0x101);
-        writeSector(&node_fs_buffer.nodes[32], 0x102);
-        writeSector(sector_fs_buffer.sector_list, 0x103);
     }
+    // 8
+    writeSector(map_fs_buffer.is_filled, 0x100);
+    writeSector(&node_fs_buffer.nodes[0], 0x101);
+    writeSector(&node_fs_buffer.nodes[32], 0x102);
+    writeSector(sector_fs_buffer.sector_list, 0x103);
 
     *return_code = FS_SUCCESS;
 }
