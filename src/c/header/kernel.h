@@ -38,8 +38,7 @@ void printCWD(char *path_str, byte current_dir);
 void cd(char *path_str, byte *current_dir);
 void ls(byte current_dir);
 void copy(char *input_buf, byte current_dir);
-void mkdir();
+void mkdir(char *input_buf, byte current_dir);
+void cat(char *input_buf, byte current_dir);
 
 void scrollController(int lines);
-
-

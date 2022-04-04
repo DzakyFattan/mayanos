@@ -7,50 +7,19 @@
 #include "header/kernel.h"
 
 int main() {
-    // char buf[128];
-    enum fs_retcode return_code;
-    struct file_metadata metadata_file;
-    struct file_metadata metadata_read;
-    byte metadata_buf[512];
-    byte metadata_read_buf[8192];
-    int i;
-
-    metadata_file.node_name = "file";
-    metadata_file.parent_index = 0xFF;
-    metadata_file.filesize = 512;
-
-    // DEBUG
-    for (i = 0; i < 300; i++) {
-        metadata_buf[i] = 'A';
-    }
-    for (i = 400; i < 512; i++) {
-        metadata_buf[i] = 'B';
-    }
-    metadata_file.buffer = metadata_buf;
-    write(&metadata_file, &return_code);
-
-    metadata_read.node_name = "file";
-    metadata_read.parent_index = 0xFF;
-    metadata_read.buffer = metadata_read_buf;
-    read(&metadata_read, &return_code);
-    // END DEBUG
-
     fillMap();
-    makeInterrupt21();
     clearScreen();
+
+    // makeInterrupt21();
     printString("\nHello, World! This is MayanOS!!\r\n");
 
-    printString(":::=======  :::====  ::: === :::====  :::= === :::====  :::=== \n");
-    printString("::: === === :::  === ::: === :::  === :::===== :::  === :::    \n");
-    printString("=== === === ========  =====  ======== ======== ===  ===  ===== \n");
-    printString("===     === ===  ===   ===   ===  === === ==== ===  ===     ===\n");
-    printString("===     === ===  ===   ===   ===  === ===  ===  ======  ====== \n");
+    // printString(":::=======  :::====  ::: === :::====  :::= === :::====  :::=== \n");
+    // printString("::: === === :::  === ::: === :::  === :::===== :::  === :::    \n");
+    // printString("=== === === ========  =====  ======== ======== ===  ===  ===== \n");
+    // printString("===     === ===  ===   ===   ===  === === ==== ===  ===     ===\n");
+    // printString("===     === ===  ===   ===   ===  === ===  ===  ======  ====== \n");
 
-    printString("\nMaya siap membantu Trainer-chan, You Copy?! ( ^ w ^)7\r\n");
-    // writeSector("gura sayang", 0x10);
-    shell();
-    printString("Number test: \n");
-    printString("\n");
+    // printString("\nMaya siap membantu Trainer-chan, You Copy?! ( ^ w ^)7\r\n");
 
     shell();
     while (true)
@@ -472,26 +441,23 @@ void read(struct file_metadata *metadata, enum fs_retcode *return_code) {
 
     // Pembacaan
     // 1. memcpy() entry sector sesuai dengan byte S
-    memcpy(sector_nums_buffer, sector_fs_buffer.sector_list[sector_entry_index].sector_numbers, 16);
-
     // 2. Lakukan iterasi proses berikut, i = 0..15
     // 3. Baca byte entry sector untuk mendapatkan sector number partisi file
     // 4. Jika byte bernilai 0, selesaikan iterasi
     // 5. Jika byte valid, lakukan readSector()
     //    dan masukkan kedalam buffer yang disediakan pada metadata
     // 6. Lompat ke iterasi selanjutnya hingga iterasi selesai
+    memcpy(sector_nums_buffer, sector_fs_buffer.sector_list[sector_entry_index].sector_numbers, 16);
     metadata->filesize = 0;
     for (i = 0; i < 16; i++) {
         if (sector_nums_buffer[i] == 0) {
             break;
         }
-        readSector(&(metadata->buffer[i*512]), sector_nums_buffer[i]);
+        readSector(&(metadata->buffer[i * 512]), sector_nums_buffer[i]);
         metadata->filesize += 512;
     }
 
-    // memcpy(*metadata->buffer, test, 1);
     // 7. Tulis retcode FS_SUCCESS pada akhir proses pembacaan.
-
     *return_code = FS_SUCCESS;
 }
 
@@ -542,12 +508,12 @@ void shell() {
             cd(input_buf, &current_dir);
         } else if (strparse(input_buf, "cp")) {
             copy(input_buf, current_dir);
-        }else if (strparse(input_buf, "mkdir")) {
+        } else if (strparse(input_buf, "mkdir")) {
             mkdir(input_buf, current_dir);
         } else if (strparse(input_buf, "rm")) {
             printString("rrmad\n");
         } else if (strparse(input_buf, "cat")) {
-            printString("cat\n");
+            cat(input_buf, current_dir);
         } else if (strparse(input_buf, "write")) {
             printString("write\n");
         } else if (strparse(input_buf, "read")) {
@@ -590,8 +556,8 @@ void printCWD(char *path_str, byte current_dir) {
 
     strcpy(path_str, "/");
     while (current_dir != FS_NODE_P_IDX_ROOT && i < 64) {
-        strcpy(temp[i], node_fs_buffer.nodes[current_dir - '0'].name);
-        current_dir = node_fs_buffer.nodes[current_dir - '0'].parent_node_index;
+        strcpy(temp[i], node_fs_buffer.nodes[current_dir].name);
+        current_dir = node_fs_buffer.nodes[current_dir].parent_node_index;
         i++;
     }
 
@@ -627,7 +593,7 @@ void cd(char *path_str, byte *current_dir) {
             return;
         }
         while (i < 64) {
-            if (*current_dir == i + '0') {
+            if (*current_dir == i) {
                 *current_dir = node_fs_buffer.nodes[i].parent_node_index;
                 return;
             }
@@ -646,7 +612,7 @@ void cd(char *path_str, byte *current_dir) {
             temp[j] = '\0';
             while (k < 64 && !found) {
                 if (strcmp(temp, node_fs_buffer.nodes[k].name) && node_fs_buffer.nodes[k].sector_entry_index == 0xFF && node_fs_buffer.nodes[k].parent_node_index == *current_dir) {
-                    *current_dir = k + '0';
+                    *current_dir = k;
 
                     found = true;
                 }
@@ -757,16 +723,29 @@ void mkdir(char *input_buf, byte current_dir) {
     }
 }
 
-void scrollController(int lines) {
-    int i;
-    if (lines < 256) {
-        for (i = 0; i < lines; i++) {
-            interrupt(0x10, 0x0600 + lines, 0x0700, 0x0, 0x1950);
-        }
+void cat(char *input_buf, byte current_dir) {
+    struct file_metadata metadata;
+    enum fs_retcode retcode;
+    char *file_name = input_buf + 4;
+    byte metadata_buf[8192];
+
+    metadata.buffer = metadata_buf;
+    metadata.node_name = file_name;
+    metadata.parent_index = current_dir;
+    printNumber(current_dir);
+
+    read(&metadata, &retcode);
+
+    if (retcode == FS_R_NODE_NOT_FOUND) {
+        printString("cat: no such file\r\n");
+        return;
     }
+
+    printString(metadata.buffer);
+    printString("\n");
 }
 
-void copy(char *input_buf, byte current_dir){
+void copy(char *input_buf, byte current_dir) {
     int i, j;
     char file_source[16];
     char file_dest[16];
@@ -781,7 +760,8 @@ void copy(char *input_buf, byte current_dir){
     }
 
     i = 2;
-    while (input_buf[i] == ' ' && input_buf[i] != '\0') i++;
+    while (input_buf[i] == ' ' && input_buf[i] != '\0')
+        i++;
     if (input_buf[i] == '\0') {
         printString("File asal dan tujuan tidak diberikan!\nContoh: cp file1.txt file2.txt\n");
         return;
@@ -794,14 +774,15 @@ void copy(char *input_buf, byte current_dir){
         j++;
     }
 
-    while (input_buf[i] == ' ') i++;
+    while (input_buf[i] == ' ')
+        i++;
 
     j = 0;
     while (input_buf[i] != '\0' && input_buf[i] != ' ') {
         file_dest[j] = input_buf[i];
         i++;
         j++;
-    }   
+    }
     printString("filesource: ");
     printString(file_source);
     printString("\n");
@@ -844,5 +825,14 @@ void copy(char *input_buf, byte current_dir){
         printNumber(return_code);
         printString("\n");
         return;
+    }
+}
+
+void scrollController(int lines) {
+    int i;
+    if (lines < 256) {
+        for (i = 0; i < lines; i++) {
+            interrupt(0x10, 0x0600 + lines, 0x0700, 0x0, 0x1950);
+        }
     }
 }
