@@ -1,8 +1,8 @@
 // Kernel header
 
-#include "std_type.h"
-#include "std_lib.h"
 #include "filesystem.h"
+#include "std_lib.h"
+#include "std_type.h"
 
 // variabel untuk tracking posisi cursor
 extern int cursor_x = 0x0;
@@ -10,7 +10,7 @@ extern int cursor_y = 0x0;
 
 // Fungsi bawaan
 extern void putInMemory(int segment, int address, byte b);
-extern int interrupt (int int_number, int AX, int BX, int CX, int DX);
+extern int interrupt(int int_number, int AX, int BX, int CX, int DX);
 extern void makeInterrupt21();
 void handleInterrupt21(int AX, int BX, int CX, int DX);
 void fillKernelMap();
@@ -38,5 +38,8 @@ void printCWD(char *path_str, byte current_dir);
 void cd(char *path_str, byte *current_dir);
 void ls(byte current_dir);
 void copy(char *input_buf, byte current_dir);
+void mkdir();
 
 void scrollController(int lines);
+
+
