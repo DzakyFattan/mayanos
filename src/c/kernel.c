@@ -641,6 +641,7 @@ void cd(char *path_str, byte *current_dir) {
     readSector(&node_fs_buffer.nodes[32], FS_NODE_SECTOR_NUMBER + 0x1);
 
     strcpy(path, path_str + 3);
+    path_length = strlen(path);
     if (strcmp(path, "..")) {
         if (*current_dir == FS_NODE_P_IDX_ROOT) {
             printString("cd: cannot go back from root\r\n");
