@@ -97,10 +97,11 @@ void printNumber(int number) {
 }
 
 void readString(char *string) {
-    int AX, scrollLine, num, i = 0;
+    int AX, scrollLine, num, input, i = 0;
     int j = 0;
     while (true) {
-        num = interrupt(0x16, 0x00, 0x00, 0x00, 0x00);
+        input = interrupt(0x16, 0x00, 0x00, 0x00, 0x00);
+        num = mod(input, 0x100);
         if (num == 13) {
             cursor_x = 0;
             cursor_y += 0x0100;
@@ -202,7 +203,7 @@ void fillMap() {
     /*
       Edit filesystem map disini
                                */
-    for (i = 0; i <= 15; i++) {
+    for (i = 0; i <= 31; i++) {
         map_fs_buffer.is_filled[i] = true;
     }
 
