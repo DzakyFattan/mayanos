@@ -33,3 +33,5 @@ void read(struct file_metadata *metadata, enum fs_retcode *return_code);
 void shell();
 
 void scrollController(int lines);
+void argParser(char *command, char *argv[]);
+void copy(char *input_buf, byte current_dir);

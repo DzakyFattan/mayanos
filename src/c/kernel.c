@@ -49,7 +49,7 @@ int main() {
     for (i = 16; i < 300; i++) {
         metadata_buf[i] = 'A';
     } 
-    for (i = 400; i < 512; i++) {
+    for (i = 400; i < 600; i++) {
         metadata_buf[i] = 'B';
     }
     metadata_file.buffer = metadata_buf;
@@ -505,11 +505,13 @@ void read(struct file_metadata *metadata, enum fs_retcode *return_code) {
     // 5. Jika byte valid, lakukan readSector()
     //    dan masukkan kedalam buffer yang disediakan pada metadata
     // 6. Lompat ke iterasi selanjutnya hingga iterasi selesai
+    metadata->filesize = 0;
     for (i = 0; i < 16; i++) {
         if (sector_nums_buffer[i] == 0) {
             break;
         }
         readSector(&(metadata->buffer[i*512]), sector_nums_buffer[i]);
+        metadata->filesize += 512;
     }
 
     // memcpy(*metadata->buffer, test, 1);
@@ -547,7 +549,9 @@ void shell() {
             printString("ls\n");
         } else if (strcmp(input_buf, "cd")) {
             printString("cd\n");
-        } else if (strcmp(input_buf, "mkdir")) {
+        } else if (strcmp(input_buf, "cp")) {
+            copy(input_buf, current_dir);
+        }else if (strcmp(input_buf, "mkdir")) {
             printString("mkdir\n");
         } else if (strcmp(input_buf, "rm")) {
             printString("rrmad\n");
@@ -576,5 +580,75 @@ void scrollController(int lines) {
         for (i = 0; i < lines; i++) {
             interrupt(0x10, 0x0600 + lines, 0x0700, 0x0, 0x1950);
         }
+    }
+}
+
+void copy(char *input_buf, byte current_dir){
+    int i, j;
+    char file_source[16];
+    char file_dest[16];
+    byte buffer[8192];
+    enum fs_retcode return_code;
+    struct file_metadata metadata;
+    i = 2;
+    while (input_buf[i] == ' ') {
+        i++;
+    }
+    i++;
+    if (input_buf[i] == '\0') {
+        printString("File asal dan tujuan tidak diberikan!\nContoh: cp file1.txt file2.txt\n");
+        return;
+    }
+    
+    i++;
+    j = 0;
+    while (input_buf[i] != ' ' && input_buf[i] != '\0') {
+        file_source[j] = input_buf[i];
+        i++;
+        j++;
+    }
+
+    if (input_buf[i] == '\0') {
+        printString("File tujuan tidak diberikan!\nContoh: cp file1.txt file2.txt\n");
+        return;
+    }
+
+    i++;
+    j = 0;
+    while (input_buf[i] != ' ' && input_buf[i] != '\0') {
+        file_dest[j] = input_buf[i];
+        i++;
+        j++;
+    }
+
+    if (strlen(file_dest) == strlen(file_source)) {
+        if (strcmp(file_dest, file_source)) {
+            printString("Nama file asal sama dengan nama file tujuan!\n");
+            return;
+        }
+    }
+
+    metadata.buffer = buffer;
+    metadata.node_name = file_source;
+    metadata.parent_index = current_dir;
+
+    read(&metadata, &return_code);
+    if (return_code != 0) {
+        printString("Pembacaan file asal gagal dengan kode error ");
+        printNumber(return_code);
+        printString("\n");
+        return;
+    }
+
+    metadata.node_name = file_dest;
+    // parent_index, buffer, dan filesize sudah ada
+
+    write(&metadata, &return_code);
+
+    if (return_code != 0) {
+        printString("Penulisan file tujuan gagal dengan kode error ");
+        printNumber(return_code);
+        printString("\n");
+        return;
     }
 }
