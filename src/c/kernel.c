@@ -7,7 +7,7 @@
 #include "header/kernel.h"
 
 int main() {
-    char buf[128];
+    // char buf[128];
     enum fs_retcode return_code;
     struct file_metadata metadata_file;
     struct file_metadata metadata_read;
@@ -195,6 +195,7 @@ void readString(char *string) {
         i++;
         cursor_x++;
     }
+    string[i] = '\0';
     interrupt(0x10, 0x0200, 0x00, 0x0, cursor_y);
 }
 
@@ -520,8 +521,10 @@ void read(struct file_metadata *metadata, enum fs_retcode *return_code) {
 void shell() {
     char input_buf[64];
     char path_str[128];
-
+    // char command[16];
+    char arg[64];
     int i = 0;
+    int j = 0;
     int scrollLine;
 
     byte current_dir = FS_NODE_P_IDX_ROOT;
@@ -529,34 +532,48 @@ void shell() {
     while (true) {
         printString("OS@IF2230:");
         cursor_x = strlen("OS@IF2230:");
-        // printCWD(path_str, current_dir);
+        printCWD(path_str, current_dir);
         printString("$ ");
 
         readString(input_buf);
+        // ignore this plz
+        // while (input_buf[i] != ' ' && input_buf[i] != '\0') {
+        //     command[i] = input_buf[i];
+        //     i++;
+        // }
+        // command[i] = '\0';
+        // i++;
 
-        if (strcmp(input_buf, "clear")) {
+        // while (i < strlen(input_buf) && input_buf[i] != '\0') {
+        //     arg[j] = input_buf[i];
+        //     i++;
+        //     j++;
+        // }
+        // arg[j] = '\0';
+
+        if (strparse(input_buf, "clear")) {
             clearScreen();
-        } else if (strcmp(input_buf, "scroll")) {
+        } else if (strparse(input_buf, "scroll")) {
             scrollController(1);
-        } else if (strcmp(input_buf, "Aku sayang Maya-chin")) {
+        } else if (strparse(input_buf, "Aku sayang Maya-chin")) {
             printString("Maya juga sayang Trainer-chan ^///^\r\n");
-        } else if (strcmp(input_buf, "exit")) {
+        } else if (strparse(input_buf, "exit")) {
             break;
-        } else if (strcmp(input_buf, "ls")) {
-            printString("ls\n");
-        } else if (strcmp(input_buf, "cd")) {
-            printString("cd\n");
-        } else if (strcmp(input_buf, "mkdir")) {
+        } else if (strparse(input_buf, "ls")) {
+            ls(current_dir);
+        } else if (strparse(input_buf, "cd")) {
+            cd(input_buf, &current_dir);
+        } else if (strparse(input_buf, "mkdir")) {
             mkdir(input_buf, current_dir);
-        } else if (strcmp(input_buf, "rm")) {
+        } else if (strparse(input_buf, "rm")) {
             printString("rrmad\n");
-        } else if (strcmp(input_buf, "cat")) {
+        } else if (strparse(input_buf, "cat")) {
             printString("cat\n");
-        } else if (strcmp(input_buf, "write")) {
+        } else if (strparse(input_buf, "write")) {
             printString("write\n");
-        } else if (strcmp(input_buf, "read")) {
+        } else if (strparse(input_buf, "read")) {
             printString("read\n");
-        } else if (strcmp(input_buf, "curloc")) {
+        } else if (strparse(input_buf, "curloc")) {
             printNumber(cursor_x);
             printString(" ");
             printNumber(cursor_y);
@@ -566,15 +583,170 @@ void shell() {
         }
         strclr(input_buf);
         strclr(path_str);
+        // strclr(command);
+        strclr(arg);
+        // i = 0;
+        // j = 0;
     }
 }
 
-void scrollController(int lines) {
-    int i;
-    if (lines < 256) {
-        for (i = 0; i < lines; i++) {
-            interrupt(0x10, 0x0600 + lines, 0x0700, 0x0, 0x1950);
+void printCWD(char *path_str, byte current_dir) {
+    char temp[64][16];
+
+    int i = 0;
+    int j = 1;
+
+    bool found = false;
+    struct node_filesystem node_fs_buffer;
+
+    readSector(&node_fs_buffer.nodes[0], FS_NODE_SECTOR_NUMBER);
+    readSector(&node_fs_buffer.nodes[32], FS_NODE_SECTOR_NUMBER + 0x1);
+
+    if (current_dir == FS_NODE_P_IDX_ROOT) {
+        path_str[0] = '/';
+        path_str[1] = '\0';
+        printString(path_str);
+        return;
+    }
+
+    strcpy(path_str, "/");
+    while (current_dir != FS_NODE_P_IDX_ROOT && i < 64) {
+        strcpy(temp[i], node_fs_buffer.nodes[current_dir - '0'].name);
+        current_dir = node_fs_buffer.nodes[current_dir - '0'].parent_node_index;
+        i++;
+    }
+
+    for (i = i - 1; i >= 0; i--) {
+        strcpy(&path_str[j], temp[i]);
+        j += strlen(temp[i]);
+        path_str[j] = '/';
+        j++;
+    }
+    path_str[j] = '\0';
+    printString(path_str);
+}
+
+void cd(char *path_str, byte *current_dir) {
+    char path[64];
+    char temp[16];
+
+    int path_length;
+    int i = 0;
+    int j = 0;
+    int k = 0;
+    bool found = false;
+    struct node_filesystem node_fs_buffer;
+
+    readSector(&node_fs_buffer.nodes[0], FS_NODE_SECTOR_NUMBER);
+    readSector(&node_fs_buffer.nodes[32], FS_NODE_SECTOR_NUMBER + 0x1);
+
+    strcpy(path, path_str + 3);
+    if (strcmp(path, "..")) {
+        if (*current_dir == FS_NODE_P_IDX_ROOT) {
+            printString("cd: cannot go back from root\r\n");
+            return;
         }
+        while (i < 64) {
+            if (*current_dir == i + '0') {
+                *current_dir = node_fs_buffer.nodes[i].parent_node_index;
+                return;
+            }
+            i++;
+        }
+
+    } else if (strcmp(path, "/")) {
+        *current_dir = FS_NODE_P_IDX_ROOT;
+    } else {
+        while (i < path_length) {
+            while (path[i] != '/' && path[i] != '\0') {
+                temp[j] = path[i];
+                i++;
+                j++;
+            }
+            temp[j] = '\0';
+            while (k < 64 && !found) {
+                if (strcmp(temp, node_fs_buffer.nodes[k].name) && node_fs_buffer.nodes[k].sector_entry_index == 0xFF && node_fs_buffer.nodes[k].parent_node_index == *current_dir) {
+                    *current_dir = k + '0';
+
+                    found = true;
+                }
+                k++;
+            }
+            if (k == 64) {
+                printString("cd: no such directory\r\n");
+                return;
+            }
+            strclr(temp);
+            j = 0;
+            k = 0;
+            i++;
+        }
+        if (i == 0) {
+            printString("cd: invalid argument\r\n");
+            return;
+        }
+    }
+}
+
+void ls(byte current_dir) {
+    char file_entry[64][16];
+    char folder_entry[64][16];
+    int strcap = 0;
+    int len = 0;
+    int file_e_counter = 0;
+    int folder_e_counter = 0;
+    int i = 0;
+
+    struct node_filesystem node_fs_buffer;
+
+    // get file system node
+    readSector(&node_fs_buffer.nodes[0], FS_NODE_SECTOR_NUMBER);
+    readSector(&node_fs_buffer.nodes[32], FS_NODE_SECTOR_NUMBER + 0x1);
+
+    // put into either entries
+    while (i < 64) {
+        if (node_fs_buffer.nodes[i].parent_node_index == current_dir) {
+            if (node_fs_buffer.nodes[i].sector_entry_index == 0xFF) {
+                strcpy(folder_entry[folder_e_counter], node_fs_buffer.nodes[i].name);
+                folder_e_counter++;
+            } else {
+                strcpy(file_entry[file_e_counter], node_fs_buffer.nodes[i].name);
+                file_e_counter++;
+            }
+        }
+        i++;
+    }
+
+    /// print
+    i = 0;
+    while (i < folder_e_counter) {
+        len = strlen(folder_entry[i]);
+        strcap += len + 1;
+        if (strcap > 64) {
+            printString("\n");
+            strcap = len;
+        }
+        printString(folder_entry[i]);
+        printString(" ");
+        i++;
+    }
+
+    i = 0;
+    while (i < file_e_counter) {
+        len = strlen(file_entry[i]);
+        strcap += len + 1;
+        if (strcap > 64) {
+            printString("\n");
+            strcap = len;
+        }
+        printString(file_entry[i]);
+        printString(" ");
+        i++;
+    }
+    printString("\n");
+    for (i = 0; i < 64; i++) {
+        strclr(file_entry[i]);
+        strclr(folder_entry[i]);
     }
 }
 
@@ -584,8 +756,10 @@ void mkdir(char *input_buf, byte current_dir) {
     char *folder_name = input_buf + 6;
     char *copy_name = "_copy\0";
     int i;
-    int len = strlen(folder_name);
+    int input_len = strlen(input_buf);
+    int len = input_len - 6;
 
+    folder_name[len] = '\0';
     metadata.node_name = folder_name;
     metadata.parent_index = current_dir;
     metadata.filesize = 0;
@@ -593,10 +767,21 @@ void mkdir(char *input_buf, byte current_dir) {
     write(&metadata, &retcode);
 
     while (retcode == FS_W_FILE_ALREADY_EXIST) {
-        for (i = 0; copy_name[i] != '\0'; i++, len++) {
+        for (i = 0; i < 6; i++, len++) {
             folder_name[len] = copy_name[i];
         }
         folder_name[strlen(folder_name)] = '\0';
+        len = strlen(folder_name);
+        metadata.node_name = folder_name;
         write(&metadata, &retcode);
+    }
+}
+
+void scrollController(int lines) {
+    int i;
+    if (lines < 256) {
+        for (i = 0; i < lines; i++) {
+            interrupt(0x10, 0x0600 + lines, 0x0700, 0x0, 0x1950);
+        }
     }
 }
