@@ -11,7 +11,7 @@ int main() {
     clearScreen();
 
     // makeInterrupt21();
-    printString("\nHello, World! This is MayanOS!!\r\n");
+    printString("\nThis is MayanOS!! >//<\r\n");
 
     // printString(":::=======  :::====  ::: === :::====  :::= === :::====  :::=== \n");
     // printString("::: === === :::  === ::: === :::  === :::===== :::  === :::    \n");
@@ -498,8 +498,6 @@ void shell() {
             clearScreen();
         } else if (strparse(input_buf, "scroll")) {
             scrollController(1);
-        } else if (strparse(input_buf, "Aku sayang Maya-chin")) {
-            printString("Maya juga sayang Trainer-chan ^///^\r\n");
         } else if (strparse(input_buf, "exit")) {
             break;
         } else if (strparse(input_buf, "ls")) {
@@ -514,10 +512,8 @@ void shell() {
             printString("rrmad\n");
         } else if (strparse(input_buf, "cat")) {
             cat(input_buf, current_dir);
-        } else if (strparse(input_buf, "write")) {
-            printString("write\n");
-        } else if (strparse(input_buf, "read")) {
-            printString("read\n");
+        } else if (strparse(input_buf, "mv")) {
+            move(input_buf, current_dir);
         } else if (strparse(input_buf, "curloc")) {
             printNumber(cursor_x);
             printString(" ");
@@ -763,7 +759,7 @@ void copy(char *input_buf, byte current_dir) {
     while (input_buf[i] == ' ' && input_buf[i] != '\0')
         i++;
     if (input_buf[i] == '\0') {
-        printString("File asal dan tujuan tidak diberikan!\nContoh: cp file1.txt file2.txt\n");
+        printString("File asal dan tujuan tidak diberikan!\n");
         return;
     }
 
@@ -783,12 +779,6 @@ void copy(char *input_buf, byte current_dir) {
         i++;
         j++;
     }
-    printString("filesource: ");
-    printString(file_source);
-    printString("\n");
-    printString("filedest: ");
-    printString(file_dest);
-    printString("\n");
 
     if (strlen(file_dest) == 0) {
         printString("File tujuan tidak diberikan!\n");
@@ -809,7 +799,7 @@ void copy(char *input_buf, byte current_dir) {
     read(&metadata, &return_code);
 
     if (return_code != 0) {
-        printString("Pembacaan file asal gagal dengan kode error ");
+        printString("Baca file asal gagal dengan kode error ");
         printNumber(return_code);
         printString("\n");
         return;
@@ -821,7 +811,7 @@ void copy(char *input_buf, byte current_dir) {
     write(&metadata, &return_code);
 
     if (return_code != 0) {
-        printString("Penulisan file tujuan gagal dengan kode error ");
+        printString("Tulis file tujuan gagal dengan kode error ");
         printNumber(return_code);
         printString("\n");
         return;
@@ -835,4 +825,90 @@ void scrollController(int lines) {
             interrupt(0x10, 0x0600 + lines, 0x0700, 0x0, 0x1950);
         }
     }
+}
+
+void move(char *input_buf, byte current_dir) {
+    int i, j;
+    bool found;
+    byte move_to_folder;
+    byte parent_parent_idx;
+    struct node_filesystem node_fs_buffer;
+    char first_arg[19];
+    char second_arg[19];
+
+    move_to_folder = 0;
+    for (i = 0; i < 19; i++) {
+        first_arg[i] = '\0';
+        second_arg[i] = '\0';
+    }
+
+    i = 3;
+    j = 0;
+    while (input_buf[i] != ' ') {
+        first_arg[j] = input_buf[i];
+        i++;
+        j++;
+    }
+
+    i++;
+    j = 0;
+    while (input_buf[i] != '\0') {
+        second_arg[j] = input_buf[i];
+        i++;
+        j++;
+    }
+
+    // get file system node
+    readSector(&node_fs_buffer.nodes[0], FS_NODE_SECTOR_NUMBER);
+    readSector(&node_fs_buffer.nodes[32], FS_NODE_SECTOR_NUMBER + 0x1);
+
+    // Mencari file/folder source
+    i = 0;
+    while (i < 64 && !found) {
+        if (node_fs_buffer.nodes[i].parent_node_index == current_dir) {
+            if (strcmp(node_fs_buffer.nodes[i].name, first_arg)) {
+                found = true;
+            }
+        i++;
+        }
+    }
+
+    if (!found) {
+        printString("File atau folder asal tidak ditemukan!\n");
+        return;
+    }
+
+    if (second_arg[0] == '/') {
+        // Kasus mengubah file/folder ke root
+        strcpy(node_fs_buffer.nodes[i].name, second_arg+1);
+        node_fs_buffer.nodes[i].parent_node_index = FS_NODE_P_IDX_ROOT;
+    } else if (second_arg[0] == '.' && second_arg[1] == '.' && second_arg[2] == '/') {
+        // Kasus mengubah folder dari folder/file ke parent
+        parent_parent_idx = node_fs_buffer.nodes[i].parent_node_index;
+
+        strcpy(node_fs_buffer.nodes[i].name, second_arg+3);
+        node_fs_buffer.nodes[i].parent_node_index = parent_parent_idx;
+    } else {
+        // Kasus memasukkan file/folder ke dalam suatu folder
+        j = 0;
+        while (j < 64 && !found) {
+            if (node_fs_buffer.nodes[j].parent_node_index == current_dir) {
+                if (node_fs_buffer.nodes[j].sector_entry_index == FS_NODE_S_IDX_FOLDER) {
+                    if (strcmp(node_fs_buffer.nodes[j].name, second_arg)) {
+                        found = true;
+                    }
+                }
+                j++;
+            }
+        }
+        if (!found) {
+            printString("Folder tujuan tidak ditemukan!\n");
+            return;
+        }
+
+        node_fs_buffer.nodes[i].parent_node_index = j;
+    }
+
+    writeSector(&node_fs_buffer.nodes[0], 0x101);
+    writeSector(&node_fs_buffer.nodes[32], 0x102);
 }

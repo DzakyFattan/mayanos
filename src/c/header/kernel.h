@@ -40,5 +40,6 @@ void ls(byte current_dir);
 void copy(char *input_buf, byte current_dir);
 void mkdir(char *input_buf, byte current_dir);
 void cat(char *input_buf, byte current_dir);
+void move(char *input_buf, byte current_dir);
 
 void scrollController(int lines);
