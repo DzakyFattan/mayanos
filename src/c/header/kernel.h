@@ -17,19 +17,26 @@ void fillKernelMap();
 void fillMap();
 void printNumber(int number);
 
-// Implementasikan
+// read-write string
 void printString(char *string);
 void readString(char *string);
 
+// clear screen
 void clearScreen();
 
-
+// read-write tp memory
 void writeSector(byte *buffer, int sector_number);
 void readSector(byte *buffer, int sector_number);
 
 void write(struct file_metadata *metadata, enum fs_retcode *return_code);
 void read(struct file_metadata *metadata, enum fs_retcode *return_code);
 
+// commands
 void shell();
+void printCWD(char *path_str, byte current_dir);
 
+void cd(char *path_str, byte *current_dir);
+void ls(byte current_dir);
+
+// misc
 void scrollController(int lines);
