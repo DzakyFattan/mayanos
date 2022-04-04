@@ -53,6 +53,7 @@ void handleInterrupt21(int AX, int BX, int CX, int DX) {
 
 void printString(char *string) {
     int i, scrollLine = 0;
+    int width_cap = 80;
     for (i = 0; i < strlen(string); i++) {
         if (string[i] == '\r' || string[i] == '\n') {
             cursor_x = 0;
@@ -67,6 +68,16 @@ void printString(char *string) {
             int AX = 0x0E00 + string[i];
             interrupt(0x10, AX, 0x0000, 0x0, 0x0);
             cursor_x++;
+            if (cursor_x >= width_cap) {
+                cursor_x = 0;
+                cursor_y += 0x0100;
+                if (cursor_y >= 0x1900) {
+                    scrollLine = div(cursor_y - 0x1800, 0x100);
+                    scrollController(scrollLine);
+                    cursor_y = 0x1900 - (scrollLine * 0x100);
+                }
+                interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y);
+            }
         }
     }
 }
@@ -97,12 +108,34 @@ void printNumber(int number) {
 }
 
 void readString(char *string) {
-    int AX, scrollLine, num, input, i = 0;
+    int AX, scrollLine, num, input, delta;
+    int i = 0;
     int j = 0;
+    int currentBufLength = 0;
     while (true) {
         input = interrupt(0x16, 0x00, 0x00, 0x00, 0x00);
         num = mod(input, 0x100);
-        if (num == 13) {
+        input = div(input, 0x100);
+        if (num == 0) {
+            if (input == 0x48 && i > 0) {
+                cursor_x -= i;
+                interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y + cursor_x);
+                i = 0;
+            } else if (input == 0x50 && i < currentBufLength) {
+                cursor_x += currentBufLength - i;
+                interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y + cursor_x);
+                i = currentBufLength;
+            } else if (input == 0x4B && i > 0) {
+                cursor_x--;
+                interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y + cursor_x);
+                i--;
+            } else if (input == 0x4D && i < currentBufLength) {
+                cursor_x++;
+                interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y + cursor_x);
+                i++;
+            }
+            continue;
+        } else if (num == 13) {
             cursor_x = 0;
             cursor_y += 0x0100;
             if (cursor_y >= 0x1900) {
@@ -117,21 +150,37 @@ void readString(char *string) {
                 cursor_x--;
                 interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y + cursor_x);
                 interrupt(0x10, 0x0A00, 0x0000, i + 1, 0x0);
-                string[i] = 0;
                 i--;
+                currentBufLength--;
+                for (j = i; j < currentBufLength; j++) {
+                    string[j] = string[j + 1];
+                    interrupt(0x10, 0x0A00 + string[j], 0x0000, 0x1, cursor_y + cursor_x + j - 1);
+                }
+                interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y + cursor_x);
+                string[i+1] = 0;
             }
             continue;
 
         } else if (num == 27) {
             clear(string, i + 1);
-            while (i != 0) {
-                cursor_x--;
-                interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y + cursor_x);
-                interrupt(0x10, 0x0A00, 0x0000, i + 1, 0x0);
-                i--;
-            }
+            currentBufLength -= i;
+            cursor_x -= i;
+            interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y + cursor_x);
+            interrupt(0x10, 0x0A00, 0x0000, i + 1, 0x0);
+            i = 0;
             continue;
         }
+        delta = i - currentBufLength;
+        for (j = i; j < currentBufLength; j++) {
+            cursor_x++;
+            interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y + cursor_x);
+            interrupt(0x10, 0x0A00 + string[j], 0x0000, 0x1, 0x0);
+        }
+        for (j = currentBufLength; j > i; j--) {
+            string[j] = string[j - 1];
+            cursor_x--;
+        }
+        interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y + cursor_x);
         string[i] = num;
 
         // print character on the screen
@@ -139,7 +188,9 @@ void readString(char *string) {
         interrupt(0x10, AX, 0x0000, 0x0, 0x0);
         i++;
         cursor_x++;
+        currentBufLength++;
     }
+    i = currentBufLength;
     string[i] = '\0';
     interrupt(0x10, 0x0200, 0x00, 0x0, cursor_y);
 }
@@ -571,12 +622,12 @@ void printCWD(char *path_str, byte current_dir) {
 void cd(char *path_str, byte *current_dir) {
     char path[64];
     char temp[16];
-
+    int tempdst = 0;
     int path_length;
     int i = 0;
     int j = 0;
     int k = 0;
-    bool found = false;
+
     struct node_filesystem node_fs_buffer;
 
     readSector(&node_fs_buffer.nodes[0], FS_NODE_SECTOR_NUMBER);
@@ -584,6 +635,8 @@ void cd(char *path_str, byte *current_dir) {
 
     strcpy(path, path_str + 3);
     path_length = strlen(path);
+
+    tempdst = *current_dir;
     if (strcmp(path, "..")) {
         if (*current_dir == FS_NODE_P_IDX_ROOT) {
             printString("cd: cannot go back from root\r\n");
@@ -607,16 +660,18 @@ void cd(char *path_str, byte *current_dir) {
                 j++;
             }
             temp[j] = '\0';
-            while (k < 64 && !found) {
-                if (strcmp(temp, node_fs_buffer.nodes[k].name) && node_fs_buffer.nodes[k].sector_entry_index == 0xFF && node_fs_buffer.nodes[k].parent_node_index == *current_dir) {
-                    *current_dir = k;
+            while (k < 64) {
+                if (strcmp(temp, node_fs_buffer.nodes[k].name) && node_fs_buffer.nodes[k].sector_entry_index == 0xFF && node_fs_buffer.nodes[k].parent_node_index == tempdst) {
+                    tempdst = k;
 
-                    found = true;
+                    break;
                 }
                 k++;
             }
             if (k == 64) {
                 printString("cd: no such directory\r\n");
+                strclr(temp);
+                strclr(path);
                 return;
             }
             strclr(temp);
@@ -626,8 +681,11 @@ void cd(char *path_str, byte *current_dir) {
         }
         if (i == 0) {
             printString("cd: invalid argument\r\n");
+            strclr(temp);
+            strclr(path);
             return;
         }
+        *current_dir = tempdst;
     }
 }
 
