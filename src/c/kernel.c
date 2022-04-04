@@ -19,7 +19,7 @@ int main() {
     metadata_file.node_name = "file";
     metadata_file.parent_index = 0xFF;
     metadata_file.filesize = 1024;
-    
+
     metadata_folder.node_name = "folderrr";
     metadata_folder.parent_index = 0xFF;
     metadata_folder.filesize = 0;
@@ -48,7 +48,7 @@ int main() {
     metadata_buf[15] = '\0';
     for (i = 16; i < 300; i++) {
         metadata_buf[i] = 'A';
-    } 
+    }
     for (i = 400; i < 512; i++) {
         metadata_buf[i] = 'B';
     }
@@ -178,7 +178,7 @@ void readString(char *string) {
             continue;
 
         } else if (num == 27) {
-            clear(string, i+1);
+            clear(string, i + 1);
             while (i != 0) {
                 cursor_x--;
                 interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y + cursor_x);
@@ -321,7 +321,6 @@ void write(struct file_metadata *metadata, enum fs_retcode *return_code) {
         return;
     }
 
-
     // 3. Cek dan pastikan entry node pada indeks P adalah folder.
     //    Jika pada indeks tersebut adalah file atau entri kosong,
     //    Tuliskan retcode FS_W_INVALID_FOLDER dan keluar.
@@ -423,7 +422,7 @@ void write(struct file_metadata *metadata, enum fs_retcode *return_code) {
 
                 sector_entry_buf.sector_numbers[j] = i;
                 j++;
-                
+
                 writeSector(&metadata->buffer[current_writing_byte], i);
 
                 current_writing_byte += 512;
@@ -498,7 +497,7 @@ void read(struct file_metadata *metadata, enum fs_retcode *return_code) {
     // Pembacaan
     // 1. memcpy() entry sector sesuai dengan byte S
     memcpy(sector_nums_buffer, sector_fs_buffer.sector_list[sector_entry_index].sector_numbers, 16);
-    
+
     // 2. Lakukan iterasi proses berikut, i = 0..15
     // 3. Baca byte entry sector untuk mendapatkan sector number partisi file
     // 4. Jika byte bernilai 0, selesaikan iterasi
@@ -509,7 +508,7 @@ void read(struct file_metadata *metadata, enum fs_retcode *return_code) {
         if (sector_nums_buffer[i] == 0) {
             break;
         }
-        readSector(&(metadata->buffer[i*512]), sector_nums_buffer[i]);
+        readSector(&(metadata->buffer[i * 512]), sector_nums_buffer[i]);
     }
 
     // memcpy(*metadata->buffer, test, 1);
@@ -548,7 +547,7 @@ void shell() {
         } else if (strcmp(input_buf, "cd")) {
             printString("cd\n");
         } else if (strcmp(input_buf, "mkdir")) {
-            printString("mkdir\n");
+            mkdir(input_buf, current_dir);
         } else if (strcmp(input_buf, "rm")) {
             printString("rrmad\n");
         } else if (strcmp(input_buf, "cat")) {
@@ -576,5 +575,28 @@ void scrollController(int lines) {
         for (i = 0; i < lines; i++) {
             interrupt(0x10, 0x0600 + lines, 0x0700, 0x0, 0x1950);
         }
+    }
+}
+
+void mkdir(char *input_buf, byte current_dir) {
+    struct file_metadata metadata;
+    enum fs_retcode retcode;
+    char *folder_name = input_buf + 6;
+    char *copy_name = "_copy\0";
+    int i;
+    int len = strlen(folder_name);
+
+    metadata.node_name = folder_name;
+    metadata.parent_index = current_dir;
+    metadata.filesize = 0;
+
+    write(&metadata, &retcode);
+
+    while (retcode == FS_W_FILE_ALREADY_EXIST) {
+        for (i = 0; copy_name[i] != '\0'; i++, len++) {
+            folder_name[len] = copy_name[i];
+        }
+        folder_name[strlen(folder_name)] = '\0';
+        write(&metadata, &retcode);
     }
 }
