@@ -779,6 +779,11 @@ void mkdir(char *input_buf, byte current_dir) {
 }
 
 void cat(char *input_buf, byte current_dir) {
+    char lines[128][128];
+    int line_track = 0;
+    int i = 0;
+    int j = 0;
+
     struct file_metadata metadata;
     enum fs_retcode retcode;
     char *file_name = input_buf + 4;
@@ -787,7 +792,6 @@ void cat(char *input_buf, byte current_dir) {
     metadata.buffer = metadata_buf;
     metadata.node_name = file_name;
     metadata.parent_index = current_dir;
-    printNumber(current_dir);
 
     read(&metadata, &retcode);
 
@@ -796,7 +800,29 @@ void cat(char *input_buf, byte current_dir) {
         return;
     }
 
-    printString(metadata.buffer);
+    // read metadata.buffer into lines
+    while (i < metadata.filesize) {
+        if (metadata.buffer[i] == '\r' || metadata.buffer[i] == '\n') {
+            if (metadata.buffer[i] == '\r') {
+                i++;
+            } 
+            lines[line_track][j] = '\0';
+            line_track++;
+            j = 0;
+        } else {
+            lines[line_track][j] = metadata.buffer[i];
+            j++;
+        }
+        i++;
+    }
+
+    // print lines
+    i = 0;
+    while (i <= line_track) {
+        printString(lines[i]);
+        printString("\n");
+        i++;
+    }
     printString("\n");
 }
 
