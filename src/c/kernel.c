@@ -10,16 +10,14 @@ int main() {
     fillMap();
     clearScreen();
 
-    // makeInterrupt21();
-    printString("\nThis is MayanOS!! >//<\r\n");
-
-    // printString(":::=======  :::====  ::: === :::====  :::= === :::====  :::=== \n");
-    // printString("::: === === :::  === ::: === :::  === :::===== :::  === :::    \n");
-    // printString("=== === === ========  =====  ======== ======== ===  ===  ===== \n");
-    // printString("===     === ===  ===   ===   ===  === === ==== ===  ===     ===\n");
-    // printString("===     === ===  ===   ===   ===  === ===  ===  ======  ====== \n");
-
-    // printString("\nMaya siap membantu Trainer-chan, You Copy?! ( ^ w ^)7\r\n");
+    makeInterrupt21();
+    printString("Pin Pon!! This is MayanOS!! >//<\r\n");
+    printString(":::=======  :::====  ::: === :::====  :::= === :::====  :::=== \n");
+    printString("::: === === :::  === ::: === :::  === :::===== :::  === :::    \n");
+    printString("=== === === ========  =====  ======== ======== ===  ===  ===== \n");
+    printString("===     === ===  ===   ===   ===  === === ==== ===  ===     ===\n");
+    printString("===     === ===  ===   ===   ===  === ===  ===  ======  ====== \n");
+    printString("\nMaya siap membantu Trainer-chan, You Copy?! ( ^ w ^)7\r\n");
 
     shell();
     while (true)
@@ -506,8 +504,7 @@ void read(struct file_metadata *metadata, enum fs_retcode *return_code) {
 void shell() {
     char input_buf[64];
     char path_str[128];
-    // char command[16];
-    char arg[64];
+    char command[16];
     int i = 0;
     int j = 0;
     int scrollLine;
@@ -521,55 +518,42 @@ void shell() {
         printString("$ ");
 
         readString(input_buf);
-        // ignore this plz
-        // while (input_buf[i] != ' ' && input_buf[i] != '\0') {
-        //     command[i] = input_buf[i];
-        //     i++;
-        // }
-        // command[i] = '\0';
-        // i++;
+        while (input_buf[i] != ' ' && input_buf[i] != '\0') {
+            command[i] = input_buf[i];
+            i++;
+        }
+        command[i] = '\0';
+        i++;
 
-        // while (i < strlen(input_buf) && input_buf[i] != '\0') {
-        //     arg[j] = input_buf[i];
-        //     i++;
-        //     j++;
-        // }
-        // arg[j] = '\0';
-
-        if (strparse(input_buf, "clear")) {
+        if (strcmp(command, "clear")) {
             clearScreen();
-        } else if (strparse(input_buf, "scroll")) {
-            scrollController(1);
-        } else if (strparse(input_buf, "exit")) {
+        } else if (strcmp(command, "exit")) {
+            printString("Trainer-chan mau pergi? :( Kapan-kapan main ke sini lagi ya! ( ^ w ^) <3\r\n");
             break;
-        } else if (strparse(input_buf, "ls")) {
+        } else if (strcmp(command, "ls")) {
             ls(current_dir);
-        } else if (strparse(input_buf, "cd")) {
+        } else if (strcmp(command, "cd")) {
             cd(input_buf, &current_dir);
-        } else if (strparse(input_buf, "cp")) {
+        } else if (strcmp(command, "cp")) {
             copy(input_buf, current_dir);
-        } else if (strparse(input_buf, "mkdir")) {
+        } else if (strcmp(command, "mkdir")) {
             mkdir(input_buf, current_dir);
-        } else if (strparse(input_buf, "rm")) {
+        } else if (strcmp(command, "rm")) {
             printString("rrmad\n");
-        } else if (strparse(input_buf, "cat")) {
+        } else if (strcmp(command, "cat")) {
             cat(input_buf, current_dir);
-        } else if (strparse(input_buf, "mv")) {
+        } else if (strcmp(command, "mv")) {
             move(input_buf, current_dir);
-        } else if (strparse(input_buf, "curloc")) {
-            printNumber(cursor_x);
-            printString(" ");
-            printNumber(cursor_y);
-            printString("\n");
+        } else if (strcmp(input_buf, "Aku sayang sama Maya-chin")) {
+            printString("Hehe, Maya juga sayang sama Trainer-chan ( ^ w ^) <3<3<3\r\n");
         } else {
             printString("Maya ngga ngerti perintah Trainer-chan (# -_-)\r\n");
         }
         strclr(input_buf);
         strclr(path_str);
-        // strclr(command);
-        strclr(arg);
-        // i = 0;
-        // j = 0;
+        strclr(command);
+        i = 0;
+        j = 0;
     }
 }
 
@@ -629,7 +613,7 @@ void cd(char *path_str, byte *current_dir) {
     tempdst = *current_dir;
     if (strcmp(path, "..")) {
         if (*current_dir == FS_NODE_P_IDX_ROOT) {
-            printString("cd: cannot go back from root\r\n");
+            printString("cd: Trainer-chan!! Ngga bisa balik dari root!\r\n");
             return;
         }
         while (i < 64) {
@@ -659,7 +643,7 @@ void cd(char *path_str, byte *current_dir) {
                 k++;
             }
             if (k == 64) {
-                printString("cd: no such directory\r\n");
+                printString("cd: Trainer-chan!! Direktori tidak ditemukan!\r\n");
                 strclr(temp);
                 strclr(path);
                 return;
@@ -670,7 +654,7 @@ void cd(char *path_str, byte *current_dir) {
             i++;
         }
         if (i == 0) {
-            printString("cd: invalid argument\r\n");
+            printString("cd: Trainer-chan!! Argumennya invalid!\r\n");
             strclr(temp);
             strclr(path);
             return;
@@ -734,10 +718,14 @@ void ls(byte current_dir) {
         printString(" ");
         i++;
     }
-    printString("\n");
-    for (i = 0; i < 64; i++) {
-        strclr(file_entry[i]);
-        strclr(folder_entry[i]);
+    if (i == 0) {
+        printString("ls: Trainer-chan!! Tidak ada File dan Folder apapun di sini!\r\n");
+    } else {
+        printString("\n");
+        for (i = 0; i < 64; i++) {
+            strclr(file_entry[i]);
+            strclr(folder_entry[i]);
+    }
     }
 }
 
@@ -790,12 +778,12 @@ void cat(char *input_buf, byte current_dir) {
     read(&metadata, &retcode);
 
     if (retcode == FS_R_NODE_NOT_FOUND) {
-        printString("cat: no such file\r\n");
+        printString("cat:mv: Trainer-chan!! File tidak ditemukan!\r\n");
         return;
     }
 
     if (retcode == FS_R_TYPE_IS_FOLDER) {
-        printString("cat: can't read folder\r\n");
+        printString("cat: Trainer-chan!! Kamu memasukkan input Folder!\r\n");
         return;
     }
 
@@ -829,12 +817,12 @@ void cat(char *input_buf, byte current_dir) {
     downLimit = line_track;
 
     // print file info
-    printString("Filename: ");
+    printString("Nama File: ");
     printString(file_name);
     printString("\n");
 
     // scroll
-    printString("Press ESC to exit");
+    printString("Sudah selesai bacanya? Tekan ESC untuk keluar ya, Trainer-chan!! ^^");
     while (true) {
         input = interrupt(0x16, 0x00, 0x00, 0x00, 0x00);
         num = mod(input, 0x100);
@@ -882,7 +870,7 @@ void copy(char *input_buf, byte current_dir) {
     while (input_buf[i] == ' ' && input_buf[i] != '\0')
         i++;
     if (input_buf[i] == '\0') {
-        printString("File asal tidak diberikan!\n");
+        printString("cp: Trainer-chan!! File asal tidak diberikan!\n");
         return;
     }
 
@@ -918,7 +906,7 @@ void copy(char *input_buf, byte current_dir) {
 
     if (strlen(file_dest) == strlen(file_source)) {
         if (strcmp(file_dest, file_source)) {
-            printString("Nama file asal sama dengan nama file tujuan!\n");
+            printString("mv: Trainer-chan!! Nama file asal sama dengan nama file tujuan!\n");
             return;
         }
     }
@@ -930,7 +918,7 @@ void copy(char *input_buf, byte current_dir) {
     read(&metadata, &return_code);
 
     if (return_code != 0) {
-        printString("Baca file asal gagal dengan kode error ");
+        printString("mv: Trainer-chan!! Baca file asal gagal dengan kode error ");
         printNumber(return_code);
         printString("\n");
         return;
@@ -946,15 +934,6 @@ void copy(char *input_buf, byte current_dir) {
         printNumber(return_code);
         printString("\n");
         return;
-    }
-}
-
-void scrollController(int lines) {
-    int i;
-    if (lines < 256) {
-        for (i = 0; i < lines; i++) {
-            interrupt(0x10, 0x0600 + lines, 0x0700, 0x0, 0x1950);
-        }
     }
 }
 
@@ -1005,7 +984,7 @@ void move(char *input_buf, byte current_dir) {
     }
 
     if (!found) {
-        printString("File/folder asal tidak ditemukan!\n");
+        printString("mv: Trainer-chan!! File/folder asal tidak ditemukan!\n");
         return;
     }
 
@@ -1017,7 +996,7 @@ void move(char *input_buf, byte current_dir) {
         // Kasus mengubah folder dari folder/file ke parent
         parent_idx = node_fs_buffer.nodes[i].parent_node_index;
         if (parent_idx == FS_NODE_P_IDX_ROOT) {
-            printString("File/folder sudah berada pada root!\n");
+            printString("mv: Trainer-chan!! File/folder sudah berada pada root!\n");
             return;
         }
 
@@ -1039,7 +1018,7 @@ void move(char *input_buf, byte current_dir) {
                 j++;
         }
         if (!found) {
-            printString("Folder tujuan tidak ditemukan!\n");
+            printString("mv: Trainer-chan!! Folder tujuan tidak ditemukan!\n");
             return;
         }
 
@@ -1048,4 +1027,13 @@ void move(char *input_buf, byte current_dir) {
 
     writeSector(&node_fs_buffer.nodes[0], 0x101);
     writeSector(&node_fs_buffer.nodes[32], 0x102);
+}
+
+void scrollController(int lines) {
+    int i;
+    if (lines < 256) {
+        for (i = 0; i < lines; i++) {
+            interrupt(0x10, 0x0600 + lines, 0x0700, 0x0, 0x1950);
+        }
+    }
 }
