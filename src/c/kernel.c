@@ -718,14 +718,15 @@ void ls(byte current_dir) {
         printString(" ");
         i++;
     }
-    if (i == 0) {
+
+    if (file_e_counter == 0 && folder_e_counter == 0) {
         printString("ls: Trainer-chan!! Tidak ada File dan Folder apapun di sini!\r\n");
     } else {
         printString("\n");
         for (i = 0; i < 64; i++) {
             strclr(file_entry[i]);
             strclr(folder_entry[i]);
-    }
+        }
     }
 }
 
@@ -854,7 +855,7 @@ void cat(char *input_buf, byte current_dir) {
 void copy(char *input_buf, byte current_dir) {
     int i, j;
     char file_source[16];
-    char* copy_name = "_copy\0";
+    char *copy_name = "_copy\0";
     char file_dest[16];
     byte buffer[4096];
     enum fs_retcode return_code;
@@ -898,7 +899,8 @@ void copy(char *input_buf, byte current_dir) {
         j = 0;
         while (i < 16 && j < 6) {
             file_dest[i] = copy_name[j];
-            i++; j++;
+            i++;
+            j++;
         }
 
         file_dest[15] = '\0';
