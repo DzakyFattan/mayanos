@@ -337,7 +337,7 @@ void write(struct file_metadata *metadata, enum fs_retcode *return_code) {
     }
 
     sector_available = 0;
-    for (i = 0; i < 32; i++) {
+    for (i = 0; i < 512; i++) {
         if (!map_fs_buffer.is_filled[i]) {
             sector_available++;
         }
@@ -866,6 +866,7 @@ void cat(char *input_buf, byte current_dir) {
 void copy(char *input_buf, byte current_dir) {
     int i, j;
     char file_source[16];
+    char* copy_name = "_copy\0";
     char file_dest[16];
     byte buffer[4096];
     enum fs_retcode return_code;
@@ -881,7 +882,7 @@ void copy(char *input_buf, byte current_dir) {
     while (input_buf[i] == ' ' && input_buf[i] != '\0')
         i++;
     if (input_buf[i] == '\0') {
-        printString("File asal dan tujuan tidak diberikan!\n");
+        printString("File asal tidak diberikan!\n");
         return;
     }
 
@@ -903,8 +904,16 @@ void copy(char *input_buf, byte current_dir) {
     }
 
     if (strlen(file_dest) == 0) {
-        printString("File tujuan tidak diberikan!\n");
-        return;
+        for (i = 0; i < strlen(file_source); i++) {
+            file_dest[i] = file_source[i];
+        }
+        j = 0;
+        while (i < 16 && j < 6) {
+            file_dest[i] = copy_name[j];
+            i++; j++;
+        }
+
+        file_dest[15] = '\0';
     }
 
     if (strlen(file_dest) == strlen(file_source)) {
