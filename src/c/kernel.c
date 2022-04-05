@@ -147,7 +147,7 @@ void readString(char *string) {
                     interrupt(0x10, 0x0A00 + string[j], 0x0000, 0x1, cursor_y + cursor_x + j - 1);
                 }
                 interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y + cursor_x);
-                string[i+1] = 0;
+                string[i + 1] = 0;
             }
             continue;
 
@@ -794,6 +794,11 @@ void cat(char *input_buf, byte current_dir) {
         return;
     }
 
+    if (retcode == FS_R_TYPE_IS_FOLDER) {
+        printString("cat: can't read folder\r\n");
+        return;
+    }
+
     // read metadata.buffer into lines
     while (i < metadata.filesize) {
         if (metadata.buffer[i] == '\0') {
@@ -802,7 +807,7 @@ void cat(char *input_buf, byte current_dir) {
         } else if (j >= 79 || metadata.buffer[i] == '\r' || metadata.buffer[i] == '\n') {
             if (metadata.buffer[i] == '\r') {
                 i++;
-            } 
+            }
             lines[line_track][j] = '\0';
             line_track++;
             j = 0;
@@ -840,7 +845,7 @@ void cat(char *input_buf, byte current_dir) {
                 downLimit--;
                 interrupt(0x10, 0x0701, 0x0700, 0x0, 0x1650);
                 interrupt(0x10, 0x0200, 0x0, 0x0, 0x0000);
-                printString(lines[upLimit]); 
+                printString(lines[upLimit]);
             } else if (input == 0x50 && downLimit < line_track) {
                 upLimit++;
                 downLimit++;
@@ -986,7 +991,8 @@ void move(char *input_buf, byte current_dir) {
                 found = true;
             }
         }
-        if (!found) i++;
+        if (!found)
+            i++;
     }
 
     if (!found) {
@@ -996,7 +1002,7 @@ void move(char *input_buf, byte current_dir) {
 
     if (second_arg[0] == '/') {
         // Kasus mengubah file/folder ke root
-        strcpy(node_fs_buffer.nodes[i].name, second_arg+1);
+        strcpy(node_fs_buffer.nodes[i].name, second_arg + 1);
         node_fs_buffer.nodes[i].parent_node_index = FS_NODE_P_IDX_ROOT;
     } else if (second_arg[0] == '.' && second_arg[1] == '.' && second_arg[2] == '/') {
         // Kasus mengubah folder dari folder/file ke parent
@@ -1006,7 +1012,7 @@ void move(char *input_buf, byte current_dir) {
             return;
         }
 
-        strcpy(node_fs_buffer.nodes[i].name, second_arg+3);
+        strcpy(node_fs_buffer.nodes[i].name, second_arg + 3);
         node_fs_buffer.nodes[i].parent_node_index = node_fs_buffer.nodes[parent_idx].parent_node_index;
     } else {
         // Kasus memasukkan file/folder ke dalam suatu folder
@@ -1020,7 +1026,8 @@ void move(char *input_buf, byte current_dir) {
                     }
                 }
             }
-            if (!found) j++;
+            if (!found)
+                j++;
         }
         if (!found) {
             printString("Folder tujuan tidak ditemukan!\n");
