@@ -68,16 +68,6 @@ void printString(char *string) {
             int AX = 0x0E00 + string[i];
             interrupt(0x10, AX, 0x0000, 0x0, 0x0);
             cursor_x++;
-            if (cursor_x >= width_cap) {
-                cursor_x = 0;
-                cursor_y += 0x0100;
-                if (cursor_y >= 0x1900) {
-                    scrollLine = div(cursor_y - 0x1800, 0x100);
-                    scrollController(scrollLine);
-                    cursor_y = 0x1900 - (scrollLine * 0x100);
-                }
-                interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y);
-            }
         }
     }
 }
@@ -779,10 +769,14 @@ void mkdir(char *input_buf, byte current_dir) {
 }
 
 void cat(char *input_buf, byte current_dir) {
-    char lines[128][128];
+    char lines[128][80];
     int line_track = 0;
     int i = 0;
     int j = 0;
+
+    int input, num;
+    int upLimit, downLimit;
+    int scrollAmount = 0;
 
     struct file_metadata metadata;
     enum fs_retcode retcode;
@@ -802,7 +796,10 @@ void cat(char *input_buf, byte current_dir) {
 
     // read metadata.buffer into lines
     while (i < metadata.filesize) {
-        if (metadata.buffer[i] == '\r' || metadata.buffer[i] == '\n') {
+        if (metadata.buffer[i] == '\0') {
+            lines[line_track][j] = '\0';
+            break;
+        } else if (j >= 79 || metadata.buffer[i] == '\r' || metadata.buffer[i] == '\n') {
             if (metadata.buffer[i] == '\r') {
                 i++;
             } 
@@ -823,7 +820,42 @@ void cat(char *input_buf, byte current_dir) {
         printString("\n");
         i++;
     }
+    upLimit = line_track - 22;
+    downLimit = line_track;
+
+    // print file info
+    printString("Filename: ");
+    printString(file_name);
     printString("\n");
+
+    // scroll
+    printString("Press ESC to exit");
+    while (true) {
+        input = interrupt(0x16, 0x00, 0x00, 0x00, 0x00);
+        num = mod(input, 0x100);
+        input = div(input, 0x100);
+        if (num == 0) {
+            if (input == 0x48 && upLimit > 0) {
+                upLimit--;
+                downLimit--;
+                interrupt(0x10, 0x0701, 0x0700, 0x0, 0x1650);
+                interrupt(0x10, 0x0200, 0x0, 0x0, 0x0000);
+                printString(lines[upLimit]); 
+            } else if (input == 0x50 && downLimit < line_track) {
+                upLimit++;
+                downLimit++;
+                interrupt(0x10, 0x0601, 0x0700, 0x0, 0x1650);
+                interrupt(0x10, 0x0200, 0x0, 0x0, 0x1600);
+                printString(lines[downLimit]);
+            }
+            interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y + cursor_x);
+            continue;
+
+        } else if (num == 27) {
+            printString("\n");
+            break;
+        }
+    }
 }
 
 void copy(char *input_buf, byte current_dir) {
