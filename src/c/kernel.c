@@ -889,13 +889,11 @@ void scrollController(int lines) {
 void move(char *input_buf, byte current_dir) {
     int i, j;
     bool found;
-    byte move_to_folder;
-    byte parent_parent_idx;
+    byte parent_idx;
     struct node_filesystem node_fs_buffer;
     char first_arg[19];
     char second_arg[19];
 
-    move_to_folder = 0;
     for (i = 0; i < 19; i++) {
         first_arg[i] = '\0';
         second_arg[i] = '\0';
@@ -923,17 +921,18 @@ void move(char *input_buf, byte current_dir) {
 
     // Mencari file/folder source
     i = 0;
+    found = false;
     while (i < 64 && !found) {
         if (node_fs_buffer.nodes[i].parent_node_index == current_dir) {
             if (strcmp(node_fs_buffer.nodes[i].name, first_arg)) {
                 found = true;
             }
-        i++;
         }
+        if (!found) i++;
     }
 
     if (!found) {
-        printString("File atau folder asal tidak ditemukan!\n");
+        printString("File/folder asal tidak ditemukan!\n");
         return;
     }
 
@@ -943,13 +942,18 @@ void move(char *input_buf, byte current_dir) {
         node_fs_buffer.nodes[i].parent_node_index = FS_NODE_P_IDX_ROOT;
     } else if (second_arg[0] == '.' && second_arg[1] == '.' && second_arg[2] == '/') {
         // Kasus mengubah folder dari folder/file ke parent
-        parent_parent_idx = node_fs_buffer.nodes[i].parent_node_index;
+        parent_idx = node_fs_buffer.nodes[i].parent_node_index;
+        if (parent_idx == FS_NODE_P_IDX_ROOT) {
+            printString("File/folder sudah berada pada root!\n");
+            return;
+        }
 
         strcpy(node_fs_buffer.nodes[i].name, second_arg+3);
-        node_fs_buffer.nodes[i].parent_node_index = parent_parent_idx;
+        node_fs_buffer.nodes[i].parent_node_index = node_fs_buffer.nodes[parent_idx].parent_node_index;
     } else {
         // Kasus memasukkan file/folder ke dalam suatu folder
         j = 0;
+        found = false;
         while (j < 64 && !found) {
             if (node_fs_buffer.nodes[j].parent_node_index == current_dir) {
                 if (node_fs_buffer.nodes[j].sector_entry_index == FS_NODE_S_IDX_FOLDER) {
@@ -957,8 +961,8 @@ void move(char *input_buf, byte current_dir) {
                         found = true;
                     }
                 }
-                j++;
             }
+            if (!found) j++;
         }
         if (!found) {
             printString("Folder tujuan tidak ditemukan!\n");
