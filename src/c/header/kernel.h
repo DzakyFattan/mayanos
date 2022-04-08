@@ -4,6 +4,9 @@
 #include "std_lib.h"
 #include "std_type.h"
 
+#define SCREEN_HEIGHT 0x1900
+#define SCREEN_WIDTH 0x50
+
 // variabel untuk tracking posisi cursor
 extern int cursor_x = 0x0;
 extern int cursor_y = 0x0;
@@ -23,6 +26,7 @@ void printNumber(int number);
 
 // read-write string
 void printString(char *string);
+void printColor(char *string, int color);
 void readString(char *string);
 
 // clear screen

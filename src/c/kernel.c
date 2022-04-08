@@ -8,17 +8,17 @@
 
 int main() {
     fillMap();
-    clearScreen();
+    interrupt(0x10, 0x0010, 0x0, 0x0, 0x0);
+    // clearScreen();
 
     makeInterrupt21();
-    printString("Pin Pon!! This is MayanOS!! >//<\r\n");
-    printString(":::=======  :::====  ::: === :::====  :::= === :::====  :::=== \n");
-    printString("::: === === :::  === ::: === :::  === :::===== :::  === :::    \n");
-    printString("=== === === ========  =====  ======== ======== ===  ===  ===== \n");
-    printString("===     === ===  ===   ===   ===  === === ==== ===  ===     ===\n");
-    printString("===     === ===  ===   ===   ===  === ===  ===  ======  ====== \n");
-    printString("\nMaya siap membantu Trainer-chan, You Copy?! ( ^ w ^)7\r\n");
-
+    printColor("Pin Pon!! This is MayanOS!! >//<\r\n", 0x6);
+    printColor(":::=======  :::====  ::: === :::====  :::= === :::====  :::=== \n", 0xE);
+    printColor("::: === === :::  === ::: === :::  === :::===== :::  === :::    \n", 0xE);
+    printColor("=== === === ========  =====  ======== ======== ===  ===  ===== \n", 0xE);
+    printColor("===     === ===  ===   ===   ===  === === ==== ===  ===     ===\n", 0xE);
+    printColor("===     === ===  ===   ===   ===  === ===  ===  ======  ====== \n", 0xE);
+    printColor("\nMaya siap membantu Trainer-chan, You Copy?! ( ^ w ^)7\r\n", 0x6);
     shell();
     while (true)
         ;
@@ -86,7 +86,28 @@ void printString(char *string) {
             interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y);
         } else {
             int AX = 0x0E00 + string[i];
-            interrupt(0x10, AX, 0x0000, 0x0, 0x0);
+            interrupt(0x10, AX, 0x0007, 0x0, 0x0);
+            cursor_x++;
+        }
+    }
+}
+
+void printColor(char *string, int color) {
+    int i, scrollLine = 0;
+    int width_cap = 80;
+    for (i = 0; i < strlen(string); i++) {
+        if (string[i] == '\r' || string[i] == '\n') {
+            cursor_x = 0;
+            cursor_y += 0x0100;
+            if (cursor_y >= 0x1900) {
+                scrollLine = div(cursor_y - 0x1800, 0x100);
+                scrollController(scrollLine);
+                cursor_y = 0x1900 - (scrollLine * 0x100);
+            }
+            interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y);
+        } else {
+            int AX = 0x0E00 + string[i];
+            interrupt(0x10, AX, 0x0000 + color, 0x0, 0x0);
             cursor_x++;
         }
     }
@@ -98,7 +119,7 @@ void printNumber(int number) {
 
     if (number == 0) {
         int AX = 0x0E00 + 48;
-        interrupt(0x10, AX, 0x0000, 0x0, 0x0);
+        interrupt(0x10, AX, 0x0007, 0x0, 0x0);
         cursor_x++;
     }
 
@@ -112,7 +133,7 @@ void printNumber(int number) {
 
     for (j = i - 1; j > -1; j--) {
         int AX = 0x0E00 + arr[j] + 48;
-        interrupt(0x10, AX, 0x0000, 0x0, 0x0);
+        interrupt(0x10, AX, 0x0007, 0x0, 0x0);
         cursor_x++;
     }
 }
@@ -195,7 +216,7 @@ void readString(char *string) {
 
         // print character on the screen
         AX = 0x0E00 + num;
-        interrupt(0x10, AX, 0x0000, 0x0, 0x0);
+        interrupt(0x10, AX, 0x0007, 0x0, 0x0);
         i++;
         cursor_x++;
         currentBufLength++;
@@ -206,12 +227,10 @@ void readString(char *string) {
 }
 
 void clearScreen() {
-    interrupt(0x10, 0x00, 0, 0, 0);
-    interrupt(0x10, 0x03, 0, 0, 0);
     interrupt(0x10, 0x0200, 0x0, 0x0, 0x0);
     cursor_x = 0x0;
     cursor_y = 0x0;
-    interrupt(0x10, 0x0700, 0x0700, 0x0, 0x1950);
+    interrupt(0x10, 0x0700, 0x0000, 0x0, SCREEN_WIDTH + SCREEN_HEIGHT);
 }
 
 void writeSector(byte *buffer, int sector_number) {
@@ -534,8 +553,8 @@ void shell() {
     byte current_dir = FS_NODE_P_IDX_ROOT;
 
     while (true) {
-        printString("OS@IF2230:");
-        cursor_x = strlen("OS@IF2230:");
+        printColor("MayanOS:", 0x6);
+        cursor_x = strlen("MayanOS:");
         printCWD(path_str, current_dir);
         printString("$ ");
 
@@ -567,9 +586,9 @@ void shell() {
         } else if (strcmp(command, "mv")) {
             move(input_buf, current_dir);
         } else if (strcmp(input_buf, "Aku sayang sama Maya-chin")) {
-            printString("Hehe, Maya juga sayang sama Trainer-chan ( ^ w ^) <3<3<3\r\n");
+            printColor("Hehe, Maya juga sayang sama Trainer-chan ( ^ w ^) <3<3<3\r\n", 0x6);
         } else {
-            printString("Maya ngga ngerti perintah Trainer-chan (# -_-)\r\n");
+            printColor("Maya ngga ngerti perintah Trainer-chan (# -_-)\r\n", 0x6);
         }
         strclr(input_buf);
         strclr(path_str);
@@ -594,7 +613,7 @@ void printCWD(char *path_str, byte current_dir) {
     if (current_dir == FS_NODE_P_IDX_ROOT) {
         path_str[0] = '/';
         path_str[1] = '\0';
-        printString(path_str);
+        printColor(path_str, 0xE);
         return;
     }
 
@@ -612,7 +631,7 @@ void printCWD(char *path_str, byte current_dir) {
         j++;
     }
     path_str[j] = '\0';
-    printString(path_str);
+    printColor(path_str, 0xE);
 }
 
 void cd(char *path_str, byte *current_dir) {
@@ -1057,7 +1076,7 @@ void scrollController(int lines) {
     int i;
     if (lines < 256) {
         for (i = 0; i < lines; i++) {
-            interrupt(0x10, 0x0600 + lines, 0x0700, 0x0, 0x1950);
+            interrupt(0x10, 0x0600 + lines, 0x0000, 0x0, SCREEN_WIDTH + SCREEN_HEIGHT);
         }
     }
 }
