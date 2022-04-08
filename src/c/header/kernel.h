@@ -12,6 +12,10 @@ extern int cursor_y = 0x0;
 extern void putInMemory(int segment, int address, byte b);
 extern int interrupt(int int_number, int AX, int BX, int CX, int DX);
 extern void makeInterrupt21();
+extern void launchProgram(int segment);
+
+void executeProgram(struct file_metadata *metadata, int segment);
+
 void handleInterrupt21(int AX, int BX, int CX, int DX);
 void fillKernelMap();
 void fillMap();
