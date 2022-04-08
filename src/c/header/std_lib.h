@@ -1,3 +1,6 @@
+#ifndef _STD_LIB_H
+#define _STD_LIB_H
+
 #include "std_type.h"
 
 // Operator matematika umum
@@ -29,3 +32,5 @@ void strclr(char *string);
 
 void clear(byte *ptr, unsigned int n);
 // Mengosongkan byte array yang memiliki panjang n
+
+#endif

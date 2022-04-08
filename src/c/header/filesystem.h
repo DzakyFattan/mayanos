@@ -1,3 +1,6 @@
+#ifndef _FILESYSTEM_H
+#define _FILESYSTEM_H
+
 // Filesystem data structure
 
 #include "std_type.h"
@@ -60,3 +63,5 @@ enum fs_retcode {
     FS_W_MAXIMUM_SECTOR_ENTRY = 6,
     FS_W_INVALID_FOLDER       = 7
 };
+
+#endif

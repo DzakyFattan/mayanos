@@ -3,7 +3,9 @@
 #include "filesystem.h"
 #include "std_lib.h"
 #include "std_type.h"
+#include "color.h"
 
+// screen size constant
 #define SCREEN_HEIGHT 0x1900
 #define SCREEN_WIDTH 0x50
 

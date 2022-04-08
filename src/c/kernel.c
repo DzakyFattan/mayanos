@@ -12,13 +12,13 @@ int main() {
     // clearScreen();
 
     makeInterrupt21();
-    printColor("Pin Pon!! This is MayanOS!! >//<\r\n", 0x6);
-    printColor(":::=======  :::====  ::: === :::====  :::= === :::====  :::=== \n", 0xE);
-    printColor("::: === === :::  === ::: === :::  === :::===== :::  === :::    \n", 0xE);
-    printColor("=== === === ========  =====  ======== ======== ===  ===  ===== \n", 0xE);
-    printColor("===     === ===  ===   ===   ===  === === ==== ===  ===     ===\n", 0xE);
-    printColor("===     === ===  ===   ===   ===  === ===  ===  ======  ====== \n", 0xE);
-    printColor("\nMaya siap membantu Trainer-chan, You Copy?! ( ^ w ^)7\r\n", 0x6);
+    printColor("Pin Pon!! This is MayanOS!! >//<\r\n", BROWN);
+    printColor(":::=======  :::====  ::: === :::====  :::= === :::====  :::=== \n", YELLOW);
+    printColor("::: === === :::  === ::: === :::  === :::===== :::  === :::    \n", YELLOW);
+    printColor("=== === === ========  =====  ======== ======== ===  ===  ===== \n", YELLOW);
+    printColor("===     === ===  ===   ===   ===  === === ==== ===  ===     ===\n", YELLOW);
+    printColor("===     === ===  ===   ===   ===  === ===  ===  ======  ====== \n", YELLOW);
+    printColor("\nMaya siap membantu Trainer-chan, You Copy?! ( ^ w ^)7\r\n", BROWN);
     shell();
     while (true)
         ;
@@ -553,7 +553,7 @@ void shell() {
     byte current_dir = FS_NODE_P_IDX_ROOT;
 
     while (true) {
-        printColor("MayanOS:", 0x6);
+        printColor("MayanOS:", BROWN);
         cursor_x = strlen("MayanOS:");
         printCWD(path_str, current_dir);
         printString("$ ");
@@ -586,9 +586,9 @@ void shell() {
         } else if (strcmp(command, "mv")) {
             move(input_buf, current_dir);
         } else if (strcmp(input_buf, "Aku sayang sama Maya-chin")) {
-            printColor("Hehe, Maya juga sayang sama Trainer-chan ( ^ w ^) <3<3<3\r\n", 0x6);
+            printColor("Hehe, Maya juga sayang sama Trainer-chan ( ^ w ^) <3<3<3\r\n", BROWN);
         } else {
-            printColor("Maya ngga ngerti perintah Trainer-chan (# -_-)\r\n", 0x6);
+            printColor("Maya ngga ngerti perintah Trainer-chan (# -_-)\r\n", BROWN);
         }
         strclr(input_buf);
         strclr(path_str);
@@ -613,7 +613,7 @@ void printCWD(char *path_str, byte current_dir) {
     if (current_dir == FS_NODE_P_IDX_ROOT) {
         path_str[0] = '/';
         path_str[1] = '\0';
-        printColor(path_str, 0xE);
+        printColor(path_str, YELLOW);
         return;
     }
 
@@ -631,7 +631,7 @@ void printCWD(char *path_str, byte current_dir) {
         j++;
     }
     path_str[j] = '\0';
-    printColor(path_str, 0xE);
+    printColor(path_str, YELLOW);
 }
 
 void cd(char *path_str, byte *current_dir) {
