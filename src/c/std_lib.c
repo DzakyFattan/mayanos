@@ -36,17 +36,6 @@ bool strcmp(char *s1, char *s2) {
     return true;
 }
 
-// the unintended
-bool strparse(char *s1, char *s2) {
-    int i;
-    for (i = 0; i < strlen(s2); i++) {
-        if (s1[i] != s2[i]) {
-            return false;
-        }
-    }
-    return true;
-}
-
 void strcpy(char *dst, char *src) {
     int i;
     for (i = 0; i < strlen(src); i++) {
