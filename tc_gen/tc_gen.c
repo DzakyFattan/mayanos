@@ -12,8 +12,6 @@ typedef unsigned char byte;
 extern void insert_file(byte buf[2880][512], char *fname, byte parent_idx);
 extern void create_folder(byte buf[2880][512], char *fname, byte parent_idx);
 
-
-
 void tc_A(byte buf[2880][512]) {
     create_folder(buf, "folder1", 0xFF);
     create_folder(buf, "folder2", 0);
@@ -67,7 +65,10 @@ void tc_D(byte buf[2880][512]) {
     }
 }
 
-
+void shell_utils(byte buf[2880][512]) {
+    create_folder(buf, "bin", 0xFF);
+    insert_file(buf, "shell_utils/shell", 0);
+}
 
 int main(int argc, char const *argv[]) {
     if (argc < 2) {
@@ -103,6 +104,9 @@ int main(int argc, char const *argv[]) {
             break;
         case 'D':
             tc_D(imagebuffer);
+            break;
+        case 'E':
+            shell_utils(imagebuffer);
             break;
     }
 

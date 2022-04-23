@@ -1,6 +1,5 @@
 #include "header/std_lib.h"
 
-// Opsional : Tambahkan implementasi kode C
 int div(int a, int b) {
     return a / b;
 }
@@ -16,10 +15,9 @@ void memcpy(byte *dest, byte *src, unsigned int n) {
     }
 }
 
-// Mengembalikan panjang suatu null terminated string
 unsigned int strlen(char *string) {
     int i;
-    for (i = 0; string[i] != '\0'; i++)
+    for (i = 0; string[i] != 0; i++)
         ;
     return i;
 }
@@ -47,7 +45,7 @@ void strcpy(char *dst, char *src) {
 void strclr(char *string) {
     int i;
     for (i = 0; i < strlen(string); i++) {
-        string[i] = '\0';
+        string[i] = 0;
     }
 }
 

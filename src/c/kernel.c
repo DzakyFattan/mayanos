@@ -40,7 +40,7 @@ void executeProgram(struct file_metadata *metadata, int segment) {
         launchProgram(segment);
     }
     else
-        printString("exec: file not found\r\n");
+        printString("exec: Trainer-chan!! file tidak ditemukan!!\r\n");
 }
 
 void handleInterrupt21(int AX, int BX, int CX, int DX) {
@@ -554,7 +554,6 @@ void shell() {
 
     while (true) {
         printColor("MayanOS:", BROWN);
-        cursor_x = strlen("MayanOS:");
         printCWD(path_str, current_dir);
         printString("$ ");
 
@@ -585,6 +584,11 @@ void shell() {
             cat(input_buf, current_dir);
         } else if (strcmp(command, "mv")) {
             move(input_buf, current_dir);
+        } else if (strcmp(input_buf, "shell")) {
+            struct file_metadata shell;
+            shell.node_name = "shell";
+            shell.parent_index = 0;
+            executeProgram(&shell, 0x4000);
         } else if (strcmp(input_buf, "Aku sayang sama Maya-chin")) {
             printColor("Hehe, Maya juga sayang sama Trainer-chan ( ^ w ^) <3<3<3\r\n", BROWN);
         } else {

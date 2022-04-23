@@ -1,5 +1,13 @@
-#ifndef _COLOR_H
-#define _COLOR_H
+#ifndef _SYS_H
+#define _SYS_H
+
+// screen size constant
+#define SCREEN_HEIGHT 0x1900
+#define SCREEN_WIDTH 0x50
+
+// variabel untuk tracking posisi cursor
+extern int cursor_x = 0x0;
+extern int cursor_y = 0x0;
 
 // bios color
 #define BLACK 0

@@ -3,15 +3,7 @@
 #include "filesystem.h"
 #include "std_lib.h"
 #include "std_type.h"
-#include "color.h"
-
-// screen size constant
-#define SCREEN_HEIGHT 0x1900
-#define SCREEN_WIDTH 0x50
-
-// variabel untuk tracking posisi cursor
-extern int cursor_x = 0x0;
-extern int cursor_y = 0x0;
+#include "sys.h"
 
 // Fungsi bawaan
 extern void putInMemory(int segment, int address, byte b);
