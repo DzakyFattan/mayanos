@@ -25,7 +25,9 @@ kernel:
 
 app:
 	bcc -ansi -c -o out/shell.o src/c/shell.c
-	ld86 -o out/shell_utils/shell -d out/shell.o out/lib_interrupt.o out/string.o out/textio.o out/std_lib.o
+	ld86 -o out/shell -d out/shell.o out/lib_interrupt.o out/string.o out/textio.o out/std_lib.o
+shell:
+	make lib app
 
 run:
 	bochs -f src/config/if2230.config
