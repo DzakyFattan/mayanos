@@ -1,35 +1,19 @@
 #include "header/string.h"
 
 unsigned int strlen(char *string) {
-    int i;
-    for (i = 0; string[i] != 0; i++)
-        ;
-    return i;
+    unsigned int length = interrupt(0x21, 0x6, string, 0, 0);
+    return length;
 }
 
 bool strcmp(char *s1, char *s2) {
-    int i;
-    if (strlen(s1) != strlen(s2))
-        return false;
-    for (i = 0; i < strlen(s2); i++) {
-        if (s1[i] != s2[i]) {
-            return false;
-        }
-    }
-    return true;
+    bool result = interrupt(0x21, 0x7, s1, s2, 0);
+    return result;
 }
 
 void strcpy(char *dst, char *src) {
-    int i;
-    for (i = 0; i < strlen(src); i++) {
-        dst[i] = src[i];
-    }
-    dst[i] = '\0';
+    interrupt(0x21, 0x8, dst, src, 0);
 }
 
 void strclr(char *string) {
-    int i;
-    for (i = 0; i < strlen(string); i++) {
-        string[i] = 0;
-    }
+    interrupt(0x21, 0x9, string, 0, 0);
 }

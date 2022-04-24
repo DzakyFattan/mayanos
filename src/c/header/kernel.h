@@ -3,7 +3,11 @@
 #include "filesystem.h"
 #include "std_lib.h"
 #include "std_type.h"
-#include "sys.h"
+#include "color.h"
+
+// screen size constant
+#define SCREEN_HEIGHT 0x1900
+#define SCREEN_WIDTH 0x50
 
 // Fungsi bawaan
 extern void putInMemory(int segment, int address, byte b);
@@ -13,10 +17,12 @@ extern void launchProgram(int segment);
 
 void executeProgram(struct file_metadata *metadata, int segment);
 
-void handleInterrupt21(int AX, int BX, int CX, int DX);
+int handleInterrupt21(int AX, int BX, int CX, int DX);
 void fillKernelMap();
 void fillMap();
 void printNumber(int number);
+
+void showCursorPosition();
 
 // read-write string
 void printString(char *string);

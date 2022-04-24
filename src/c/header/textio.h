@@ -2,7 +2,6 @@
 #define _TEXTIO_H
 
 #include "std_type.h"
-#include "sys.h"
 
 extern int interrupt(int int_number, int AX, int BX, int CX, int DX);
 

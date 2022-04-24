@@ -10,7 +10,6 @@ int div(int a, int b);
 
 int mod(int a, int n);
 
-
 // Operasi standar bahasa C
 // Implementasikan
 void memcpy(byte *dest, byte *src, unsigned int n);

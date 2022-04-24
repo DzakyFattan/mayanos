@@ -6,22 +6,77 @@
 
 #include "header/kernel.h"
 
-int main() {
-    fillMap();
-    interrupt(0x10, 0x0010, 0x0, 0x0, 0x0);
-    // clearScreen();
+int cursor_x = 0x0;
+int cursor_y = 0x0;
 
+int main() {
+    struct file_metadata meta;
+    fillMap();
     makeInterrupt21();
-    printColor("Pin Pon!! This is MayanOS!! >//<\r\n", BROWN);
-    printColor(":::=======  :::====  ::: === :::====  :::= === :::====  :::=== \n", YELLOW);
-    printColor("::: === === :::  === ::: === :::  === :::===== :::  === :::    \n", YELLOW);
-    printColor("=== === === ========  =====  ======== ======== ===  ===  ===== \n", YELLOW);
-    printColor("===     === ===  ===   ===   ===  === === ==== ===  ===     ===\n", YELLOW);
-    printColor("===     === ===  ===   ===   ===  === ===  ===  ======  ====== \n", YELLOW);
-    printColor("\nMaya siap membantu Trainer-chan, You Copy?! ( ^ w ^)7\r\n", BROWN);
+    interrupt(0x10, 0x0010, 0x0, 0x0, 0x0);
+    clearScreen();
+
+    meta.node_name = "shell";
+    meta.parent_index = 0;
+    executeProgram(&meta, 0x4000);
+
     shell();
     while (true)
         ;
+}
+
+int handleInterrupt21(int AX, int BX, int CX, int DX) {
+    switch (AX) {
+    case 0x0:
+        printString(BX);
+        break;
+    case 0x1:
+        readString(BX);
+        break;
+    case 0x2:
+        readSector(BX, CX);
+        break;
+    case 0x3:
+        writeSector(BX, CX);
+        break;
+    case 0x4:
+        read(BX, CX);
+        break;
+    case 0x5:
+        write(BX, CX);
+        break;
+    case 0x6:
+        AX = strlen(BX);
+    case 0x7:
+        AX = strcmp(BX, CX);
+        break;
+    case 0x8:
+        strcpy(BX, CX);
+        break;
+    case 0x9:
+        strclr(BX);
+        break;
+    case 0xA:
+        clearScreen();
+        break;
+    case 0xB:
+        printColor(BX, CX);
+        break;
+    case 0xC:
+        printCWD(BX, CX);
+        break;
+    case 0xD:
+        printNumber(BX);
+        break;
+    case 0xE:
+        exit();
+        break;
+    case 0xF:
+        executeProgram(BX, CX);
+        break;
+    default:
+        printString("Invalid Interrupt");
+    }
 }
 
 void executeProgram(struct file_metadata *metadata, int segment) {
@@ -43,32 +98,19 @@ void executeProgram(struct file_metadata *metadata, int segment) {
         printString("exec: Trainer-chan!! file tidak ditemukan!!\r\n");
 }
 
-void handleInterrupt21(int AX, int BX, int CX, int DX) {
-    switch (AX) {
-    case 0x0:
-        printString(BX);
-        break;
-    case 0x1:
-        readString(BX);
-        break;
-    case 0x2:
-        readSector(BX, CX);
-        break;
-    case 0x3:
-        writeSector(BX, CX);
-        break;
-    case 0x4:
-        read(BX, CX);
-        break;
-    case 0x5:
-        write(BX, CX);
-        break;
-    case 0x6:
-        executeProgram(BX, CX);
-        break;
-    default:
-        printString("Invalid Interrupt");
-    }
+void exit() {
+    struct file_metadata shell;
+    shell.node_name = "shell";
+    shell.parent_index = 0;
+    executeProgram(&shell, 0x4000);
+}
+
+void showCursorPosition() {
+    printString("\ncursorX, cursorY:\n");
+    printNumber(cursor_x);
+    printString(" ");
+    printNumber(cursor_y / 0x100);
+    printString("\n");
 }
 
 void printString(char *string) {
@@ -591,6 +633,8 @@ void shell() {
             executeProgram(&shell, 0x4000);
         } else if (strcmp(input_buf, "Aku sayang sama Maya-chin")) {
             printColor("Hehe, Maya juga sayang sama Trainer-chan ( ^ w ^) <3<3<3\r\n", BROWN);
+        } else if (strcmp(input_buf, "cur")) {
+            showCursorPosition();
         } else {
             printColor("Maya ngga ngerti perintah Trainer-chan (# -_-)\r\n", BROWN);
         }
