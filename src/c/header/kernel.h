@@ -15,18 +15,17 @@ extern int interrupt(int int_number, int AX, int BX, int CX, int DX);
 extern void makeInterrupt21();
 extern void launchProgram(int segment);
 
-void executeProgram(struct file_metadata *metadata, int segment);
-
 int handleInterrupt21(int AX, int BX, int CX, int DX);
-void fillKernelMap();
 void fillMap();
-void printNumber(int number);
+void executeProgram(struct file_metadata *metadata, int segment);
+void exit();
 
 void showCursorPosition();
 
 // read-write string
 void printString(char *string);
 void printColor(char *string, int color);
+void printNumber(int number);
 void readString(char *string);
 
 // clear screen
