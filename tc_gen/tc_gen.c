@@ -68,6 +68,7 @@ void tc_D(byte buf[2880][512]) {
 void shell_utils(byte buf[2880][512]) {
     create_folder(buf, "bin", 0xFF);
     insert_file(buf, "shell", 0x0);
+    insert_file(buf, "cd", 0x0);
     insert_file(buf, "cp", 0x0);
 }
 
@@ -94,21 +95,21 @@ int main(int argc, char const *argv[]) {
     image = fopen(NAMA_IMAGE, "wb");
 
     switch (argv[1][0]) {
-        case 'A':
-            tc_A(imagebuffer);
-            break;
-        case 'B':
-            tc_B(imagebuffer);
-            break;
-        case 'C':
-            tc_C(imagebuffer);
-            break;
-        case 'D':
-            tc_D(imagebuffer);
-            break;
-        case 'E':
-            shell_utils(imagebuffer);
-            break;
+    case 'A':
+        tc_A(imagebuffer);
+        break;
+    case 'B':
+        tc_B(imagebuffer);
+        break;
+    case 'C':
+        tc_C(imagebuffer);
+        break;
+    case 'D':
+        tc_D(imagebuffer);
+        break;
+    case 'E':
+        shell_utils(imagebuffer);
+        break;
     }
 
     // Overwrite old file

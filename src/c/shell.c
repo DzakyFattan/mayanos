@@ -16,13 +16,11 @@ int main() {
     int scrollLine;
     struct message msg;
     struct file_metadata meta;
-    
 
     byte current_dir = FS_NODE_P_IDX_ROOT;
-    msg.current_directory = 0x5;
+    msg.current_directory = 0xFF;
     msg.next_program_segment = 0x200;
     strcpy(msg.arg1, "arg1");
-
     strcpy(msg.arg3, "arg3");
     strcpy(msg.arg4, "arg4");
 
@@ -51,13 +49,19 @@ int main() {
         } else if (strcmp(command, "ls")) {
             puts("ls\n");
         } else if (strcmp(command, "cd")) {
-            puts("cd\n");
+            bufferToMessage(input_buf, &msg);
+            setMessage(&msg);
+            meta.node_name = "cd";
+            meta.parent_index = 0x00; // bin
+            // interrupt(0x21, 0xF, &meta, 0x6000, 0x0);
+            exec(&meta, 0x6000);
         } else if (strcmp(command, "cp")) {
             bufferToMessage(input_buf, &msg);
             setMessage(&msg);
             meta.node_name = "cp";
-            meta.parent_index = 0x00;  // bin
-            interrupt(0x21, 0xF, &meta, 0x5000, 0x0);
+            meta.parent_index = 0x00; // bin
+            // interrupt(0x21, 0xF, &meta, 0x5000, 0x0);
+            exec(&meta, 0x5000);
         } else if (strcmp(command, "mkdir")) {
             puts("mkdir\n");
         } else if (strcmp(command, "rm")) {
@@ -97,7 +101,8 @@ void bufferToMessage(char *input_buf, struct message *msg) {
         i++;
         putsNumber(i);
     };
-    if (input_buf[i] == '\0') return;  // tidak ada argumen
+    if (input_buf[i] == '\0')
+        return; // tidak ada argumen
 
     // argumen pertama
     i++;
@@ -110,7 +115,8 @@ void bufferToMessage(char *input_buf, struct message *msg) {
     }
 
     // argumen kedua
-    if (input_buf[i] == '\0') return;  // tidak ada argumen
+    if (input_buf[i] == '\0')
+        return; // tidak ada argumen
     i++;
     j = 0;
     while (input_buf[i] != '\0' && input_buf[i] != ' ') {
@@ -120,7 +126,8 @@ void bufferToMessage(char *input_buf, struct message *msg) {
     }
 
     // argumen tiga
-    if (input_buf[i] == '\0') return;  // tidak ada argumen
+    if (input_buf[i] == '\0')
+        return; // tidak ada argumen
     i++;
     j = 0;
     while (input_buf[i] != '\0' && input_buf[i] != ' ') {
@@ -130,7 +137,8 @@ void bufferToMessage(char *input_buf, struct message *msg) {
     }
 
     // argumen empat
-    if (input_buf[i] == '\0') return;  // tidak ada argumen
+    if (input_buf[i] == '\0')
+        return; // tidak ada argumen
     i++;
     j = 0;
     while (input_buf[i] != '\0' && input_buf[i] != ' ') {

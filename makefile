@@ -27,6 +27,8 @@ kernel:
 	dd if=out/kernel of=out/system.img bs=512 conv=notrunc seek=1
 
 program: lib
+	bcc -ansi -c -o out/cd.o src/c/cd.c
+	ld86 -o out/cd -d out/cd.o $(LIBRARY)
 	bcc -ansi -c -o out/cp.o src/c/cp.c
 	ld86 -o out/cp -d out/cp.o $(LIBRARY)
 

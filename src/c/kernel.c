@@ -93,8 +93,7 @@ void executeProgram(struct file_metadata *metadata, int segment) {
                 putInMemory(segment, i, 0x00);
         }
         launchProgram(segment);
-    }
-    else
+    } else
         printString("exec: Trainer-chan!! file tidak ditemukan!!\r\n");
 }
 
