@@ -8,7 +8,7 @@
 
 int main() {
     char *path_str;
-    char *current_dir;
+    byte *current_dir;
     char path[64];
     char temp[16];
     int tempdst = 0;
@@ -21,29 +21,30 @@ int main() {
     struct node_filesystem node_fs_buffer;
 
     getMessage(&msg);
-    current_dir = msg.current_directory;
+    current_dir = &(msg.current_directory);
     path_str = msg.arg1;
 
     readSector(&node_fs_buffer.nodes[0], FS_NODE_SECTOR_NUMBER);
     readSector(&node_fs_buffer.nodes[32], FS_NODE_SECTOR_NUMBER + 0x1);
 
     strcpy(path, path_str + 3);
-    path_length = strlen(path);
+    // path_length = strlen(path);
+    for (path_length = 0; path[path_length] != 0; path_length++)
+        ;
 
     tempdst = *current_dir;
     if (strcmp(path, "..")) {
         if (*current_dir == FS_NODE_P_IDX_ROOT) {
             puts("cd: Trainer-chan!! Ngga bisa balik dari root!\n");
-            return;
+            exit();
         }
         while (i < 64) {
             if (*current_dir == i) {
                 *current_dir = node_fs_buffer.nodes[i].parent_node_index;
-                return;
+                exit();
             }
             i++;
         }
-
     } else if (strcmp(path, "/")) {
         *current_dir = FS_NODE_P_IDX_ROOT;
     } else {
@@ -66,7 +67,7 @@ int main() {
                 puts("cd: Trainer-chan!! Direktori tidak ditemukan!\n");
                 strclr(temp);
                 strclr(path);
-                return;
+                exit();
             }
             strclr(temp);
             j = 0;
@@ -77,10 +78,11 @@ int main() {
             puts("cd: Trainer-chan!! Argumennya invalid!\n");
             strclr(temp);
             strclr(path);
-            return;
+            exit();
         }
-        *current_dir = tempdst;
+        msg.current_directory = tempdst;
+        setMessage(&msg);
     }
 
-    // exit();
+    exit();
 }

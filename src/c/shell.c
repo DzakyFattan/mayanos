@@ -18,7 +18,7 @@ int main() {
     struct file_metadata meta;
 
     byte current_dir = FS_NODE_P_IDX_ROOT;
-    msg.current_directory = 0xFF;
+    msg.current_directory = current_dir;
     msg.next_program_segment = 0x200;
 
     putsColor("Pin Pon!! This is MayanOS!! >//<\r\n", BROWN);
@@ -46,18 +46,17 @@ int main() {
         } else if (strcmp(command, "ls")) {
             puts("ls\n");
         } else if (strcmp(command, "cd")) {
-            bufferToMessage(input_buf, &msg);
+            // bufferToMessage(input_buf, &msg);
+            strcpy(msg.arg1, input_buf);
             setMessage(&msg);
             meta.node_name = "cd";
             meta.parent_index = 0x00; // bin
-            // interrupt(0x21, 0xF, &meta, 0x6000, 0x0);
             exec(&meta, 0x6000);
         } else if (strcmp(command, "cp")) {
             bufferToMessage(input_buf, &msg);
             setMessage(&msg);
             meta.node_name = "cp";
             meta.parent_index = 0x00; // bin
-            // interrupt(0x21, 0xF, &meta, 0x5000, 0x0);
             exec(&meta, 0x5000);
         } else if (strcmp(command, "mkdir")) {
             puts("mkdir\n");
