@@ -4,8 +4,6 @@
 #include "std_type.h"
 #include "filesystem.h"
 
-#define MSG_SECTOR 0x104
-
 extern int interrupt(int int_number, int AX, int BX, int CX, int DX);
 
 void exec(struct file_metadata *metadata, int segment);

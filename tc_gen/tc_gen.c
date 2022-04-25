@@ -67,7 +67,8 @@ void tc_D(byte buf[2880][512]) {
 
 void shell_utils(byte buf[2880][512]) {
     create_folder(buf, "bin", 0xFF);
-    insert_file(buf, "shell_utils/shell", 0);
+    insert_file(buf, "shell", 0x0);
+    insert_file(buf, "cp", 0x0);
 }
 
 int main(int argc, char const *argv[]) {

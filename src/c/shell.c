@@ -1,8 +1,11 @@
+#include "header/color.h"
+#include "header/filesystem.h"
+#include "header/message.h"
 #include "header/std_type.h"
 #include "header/string.h"
 #include "header/textio.h"
-#include "header/filesystem.h"
-#include "header/color.h"
+
+void bufferToMessage(char *input_buf, struct message *msg);
 
 int main() {
     char input_buf[64];
@@ -11,8 +14,17 @@ int main() {
     int i = 0;
     int j = 0;
     int scrollLine;
+    struct message msg;
+    struct file_metadata meta;
+    
 
     byte current_dir = FS_NODE_P_IDX_ROOT;
+    msg.current_directory = 0x5;
+    msg.next_program_segment = 0x200;
+    strcpy(msg.arg1, "arg1");
+
+    strcpy(msg.arg3, "arg3");
+    strcpy(msg.arg4, "arg4");
 
     putsColor("Pin Pon!! This is MayanOS!! >//<\r\n", BROWN);
     putsColor(":::=======  :::====  ::: === :::====  :::= === :::====  :::=== \n", YELLOW);
@@ -41,7 +53,11 @@ int main() {
         } else if (strcmp(command, "cd")) {
             puts("cd\n");
         } else if (strcmp(command, "cp")) {
-            puts("cp\n");
+            bufferToMessage(input_buf, &msg);
+            setMessage(&msg);
+            meta.node_name = "cp";
+            meta.parent_index = 0x00;  // bin
+            interrupt(0x21, 0xF, &meta, 0x5000, 0x0);
         } else if (strcmp(command, "mkdir")) {
             puts("mkdir\n");
         } else if (strcmp(command, "rm")) {
@@ -60,5 +76,66 @@ int main() {
         strclr(command);
         i = 0;
         j = 0;
+    }
+}
+
+void bufferToMessage(char *input_buf, struct message *msg) {
+    int i, j;
+
+    // clear message
+    msg->current_directory = 0;
+    msg->next_program_segment = 0;
+    for (i = 0; i < 64; i++) {
+        msg->arg1[i] = 0;
+        msg->arg2[i] = 0;
+        msg->arg3[i] = 0;
+        msg->arg4[i] = 0;
+    }
+
+    i = 0;
+    while (input_buf[i] != '\0' && input_buf[i] != ' ') {
+        i++;
+        putsNumber(i);
+    };
+    if (input_buf[i] == '\0') return;  // tidak ada argumen
+
+    // argumen pertama
+    i++;
+    j = 0;
+    while (input_buf[i] != '\0' && input_buf[i] != ' ') {
+        msg->arg1[j] = input_buf[i];
+        putsNumber(i);
+        i++;
+        j++;
+    }
+
+    // argumen kedua
+    if (input_buf[i] == '\0') return;  // tidak ada argumen
+    i++;
+    j = 0;
+    while (input_buf[i] != '\0' && input_buf[i] != ' ') {
+        msg->arg2[j] = input_buf[i];
+        i++;
+        j++;
+    }
+
+    // argumen tiga
+    if (input_buf[i] == '\0') return;  // tidak ada argumen
+    i++;
+    j = 0;
+    while (input_buf[i] != '\0' && input_buf[i] != ' ') {
+        msg->arg3[j] = input_buf[i];
+        i++;
+        j++;
+    }
+
+    // argumen empat
+    if (input_buf[i] == '\0') return;  // tidak ada argumen
+    i++;
+    j = 0;
+    while (input_buf[i] != '\0' && input_buf[i] != ' ') {
+        msg->arg3[j] = input_buf[i];
+        i++;
+        j++;
     }
 }
