@@ -14,11 +14,11 @@ struct message {
     char arg3[64];
     char arg4[64];
     int next_program_segment;
+    char other[253];
 };
 
 void setMessage(struct message *msg);
 
 void getMessage(struct message *msg);
-
 
 #endif
