@@ -91,7 +91,6 @@ void bufferToMessage(char *input_buf, struct message *msg) {
     i = 0;
     while (input_buf[i] != '\0' && input_buf[i] != ' ') {
         i++;
-        putsNumber(i);
     };
     if (input_buf[i] == '\0') return;  // tidak ada argumen
 
@@ -100,7 +99,6 @@ void bufferToMessage(char *input_buf, struct message *msg) {
     j = 0;
     while (input_buf[i] != '\0' && input_buf[i] != ' ') {
         msg->arg1[j] = input_buf[i];
-        putsNumber(i);
         i++;
         j++;
     }
