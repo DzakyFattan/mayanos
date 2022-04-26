@@ -16,14 +16,16 @@ int main() {
     int scrollLine;
     struct message msg;
     struct file_metadata meta;
+    byte current_dir;
 
-    byte current_dir = FS_NODE_P_IDX_ROOT;
-    msg.current_directory = current_dir;
+    getMessage(&msg);
+
+    current_dir = msg.current_directory;
     msg.next_program_segment = 0x200;
 
     while (true) {
         putsColor("MayanOS: ", BROWN);
-        interrupt(0x21, 0xC, path_str, current_dir, 0);
+        interrupt(0x21, 0xC, current_dir, 0, 0);
         puts("$ ");
 
         gets(input_buf);

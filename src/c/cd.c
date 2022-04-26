@@ -28,9 +28,7 @@ int main() {
     readSector(&node_fs_buffer.nodes[32], FS_NODE_SECTOR_NUMBER + 0x1);
 
     strcpy(path, path_str + 3);
-    // path_length = strlen(path);
-    for (path_length = 0; path[path_length] != 0; path_length++)
-        ;
+    path_length = strlen(path);
 
     tempdst = *current_dir;
     if (strcmp(path, "..")) {
@@ -40,13 +38,15 @@ int main() {
         }
         while (i < 64) {
             if (*current_dir == i) {
-                *current_dir = node_fs_buffer.nodes[i].parent_node_index;
+                msg.current_directory = node_fs_buffer.nodes[i].parent_node_index;
+                setMessage(&msg);
                 exit();
             }
             i++;
         }
     } else if (strcmp(path, "/")) {
-        *current_dir = FS_NODE_P_IDX_ROOT;
+        msg.current_directory = FS_NODE_P_IDX_ROOT;
+        setMessage(&msg);
     } else {
         while (i < path_length) {
             while (path[i] != '/' && path[i] != '\0') {

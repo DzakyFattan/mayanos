@@ -70,6 +70,9 @@ void shell_utils(byte buf[2880][512]) {
     insert_file(buf, "shell", 0x0);
     insert_file(buf, "cd", 0x0);
     insert_file(buf, "cp", 0x0);
+    create_folder(buf, "mayano", 0x0);
+    create_folder(buf, "top", 0x0);
+    create_folder(buf, "gun", 0x0);
 }
 
 int main(int argc, char const *argv[]) {

@@ -8,11 +8,13 @@
 
 int main() {
     struct file_metadata meta;
+    byte root[512];
+    root[0] = 0xFF;
     fillMap();
     makeInterrupt21();
     interrupt(0x10, 0x0010, 0x0, 0x0, 0x0);
-    //interrupt(0x10, 0x0003, 0x0, 0x0, 0x0);
-    //clearScreen();
+    // interrupt(0x10, 0x0003, 0x0, 0x0, 0x0);
+    // clearScreen();
     interrupt(0x21, 0xB, "Pin Pon!! This is MayanOS!! >//<\n", BROWN, 0x0);
     interrupt(0x10, 0x0E0A, 0x0, 0x0, 0x0);
     interrupt(0x21, 0xB, ":::=======  :::====  ::: === :::====  :::= === :::====  :::=== \n", YELLOW, 0x0);
@@ -21,6 +23,8 @@ int main() {
     interrupt(0x21, 0xB, "===     === ===  ===   ===   ===  === === ==== ===  ===     ===\n", YELLOW, 0x0);
     interrupt(0x21, 0xB, "===     === ===  ===   ===   ===  === ===  ===  ======  ====== \n", YELLOW, 0x0);
     interrupt(0x21, 0xB, "\nMaya siap membantu Trainer-chan, You Copy?! ( ^ w ^)7\r\n", BROWN, 0x0);
+
+    writeSector(root, 0x104);
 
     meta.node_name = "shell";
     meta.parent_index = 0;
@@ -70,7 +74,7 @@ int handleInterrupt21(int AX, int BX, int CX, int DX) {
         printColor(BX, CX);
         break;
     case 0xC:
-        printCWD(BX, CX);
+        printCWD(BX);
         break;
     case 0xD:
         printNumber(BX);
@@ -111,7 +115,6 @@ void exit() {
     executeProgram(&shell, 0x4000);
 }
 
-
 void clearScreen() {
     interrupt(0x10, 0x0700, 0x0700, 0x0, SCREEN_WIDTH + SCREEN_HEIGHT);
     interrupt(0x10, 0x0200, 0x0, 0x0, 0x0);
@@ -146,7 +149,7 @@ void printNumber(int number) {
     int digit;
     int j, i = 0;
 
-    while (div(number, 10) != 0) {
+    while (number != 0) {
         digit = mod(number, 10);
 
         arr[i] = digit;
@@ -234,14 +237,13 @@ void readString(char *string) {
 
         // shift characters on the right if exists
         for (j = cur; j < currentBufLength; j++) {
-            interrupt(0x10, 0x0E00 + string[j-1], 0x0007, 0x0, 0x0);
+            interrupt(0x10, 0x0E00 + string[j - 1], 0x0007, 0x0, 0x0);
         }
         for (j = currentBufLength - 1; j >= cur; j--) {
             string[j] = string[j - 1];
             interrupt(0x10, 0x0E08, 0x0, 0x0, 0x0);
         }
-        string[cur-1] = num;
-
+        string[cur - 1] = num;
     }
     string[currentBufLength] = '\0';
 }
@@ -567,7 +569,7 @@ void shell() {
 
     while (true) {
         printColor("MayanOS:", BROWN);
-        printCWD(path_str, current_dir);
+        printCWD(current_dir);
         printString("$ ");
 
         readString(input_buf);
@@ -615,11 +617,12 @@ void shell() {
     }
 }
 
-void printCWD(char *path_str, byte current_dir) {
+void printCWD(byte current_dir) {
     char temp[64][16];
+    char path_str[128];
 
     int i = 0;
-    int j = 1;
+    int j = 0;
 
     bool found = false;
     struct node_filesystem node_fs_buffer;
@@ -642,7 +645,7 @@ void printCWD(char *path_str, byte current_dir) {
     }
 
     for (i = i - 1; i >= 0; i--) {
-        strcpy(&path_str[j], temp[i]);
+        strcpy(&(path_str[j]), temp[i]);
         j += strlen(temp[i]);
         path_str[j] = '/';
         j++;
@@ -875,7 +878,7 @@ void cat(char *input_buf, byte current_dir) {
 
     // line track starts at 0
     upLimit = line_track - 21; // top most line
-    downLimit = line_track; // bottom most line, the last line of the text
+    downLimit = line_track;    // bottom most line, the last line of the text
 
     // print file info
     printString("========================\nNama File: ");

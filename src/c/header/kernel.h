@@ -1,9 +1,9 @@
 // Kernel header
 
+#include "color.h"
 #include "filesystem.h"
 #include "std_lib.h"
 #include "std_type.h"
-#include "color.h"
 
 // screen size constant
 #define SCREEN_HEIGHT 0x1900
@@ -40,7 +40,7 @@ void read(struct file_metadata *metadata, enum fs_retcode *return_code);
 
 // commands
 void shell();
-void printCWD(char *path_str, byte current_dir);
+void printCWD(byte current_dir);
 
 void cd(char *path_str, byte *current_dir);
 void ls(byte current_dir);
