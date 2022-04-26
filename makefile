@@ -33,6 +33,8 @@ program: lib
 	ld86 -o out/ls -d out/ls.o $(LIBRARY)
 	bcc -ansi -c -o out/mkdir.o src/c/mkdir.c
 	ld86 -o out/mkdir -d out/mkdir.o $(LIBRARY)
+	bcc -ansi -c -o out/cat.o src/c/cat.c
+	ld86 -o out/cat -d out/cat.o $(LIBRARY)
 	bcc -ansi -c -o out/cp.o src/c/cp.c
 	ld86 -o out/cp -d out/cp.o $(LIBRARY)
 

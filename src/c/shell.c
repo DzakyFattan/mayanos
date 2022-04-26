@@ -63,7 +63,11 @@ int main() {
         } else if (strcmp(command, "rm")) {
             puts("rm\n");
         } else if (strcmp(command, "cat")) {
-            puts("cat\n");
+            strcpy(msg.arg1, input_buf);
+            setMessage(&msg);
+            meta.node_name = "cat";
+            meta.parent_index = 0x00; // bin
+            exec(&meta, 0x9000);
         } else if (strcmp(command, "mv")) {
             puts("mc\n");
         } else if (strcmp(input_buf, "Aku sayang sama Maya-chin")) {
