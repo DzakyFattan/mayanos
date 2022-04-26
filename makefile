@@ -29,10 +29,12 @@ kernel:
 program: lib
 	bcc -ansi -c -o out/cd.o src/c/cd.c
 	ld86 -o out/cd -d out/cd.o $(LIBRARY)
-	bcc -ansi -c -o out/cp.o src/c/cp.c
-	ld86 -o out/cp -d out/cp.o $(LIBRARY)
 	bcc -ansi -c -o out/ls.o src/c/ls.c
 	ld86 -o out/ls -d out/ls.o $(LIBRARY)
+	bcc -ansi -c -o out/mkdir.o src/c/mkdir.c
+	ld86 -o out/mkdir -d out/mkdir.o $(LIBRARY)
+	bcc -ansi -c -o out/cp.o src/c/cp.c
+	ld86 -o out/cp -d out/cp.o $(LIBRARY)
 
 tcgen:
 	gcc tc_gen/tc_gen.c tc_gen/tc_lib -o out/tc_gen

@@ -55,7 +55,11 @@ int main() {
             meta.parent_index = 0x00; // bin
             exec(&meta, 0x5000);
         } else if (strcmp(command, "mkdir")) {
-            puts("mkdir\n");
+            strcpy(msg.arg1, input_buf);
+            setMessage(&msg);
+            meta.node_name = "mkdir";
+            meta.parent_index = 0x00; // bin
+            exec(&meta, 0x8000);
         } else if (strcmp(command, "rm")) {
             puts("rm\n");
         } else if (strcmp(command, "cat")) {

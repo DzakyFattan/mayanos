@@ -72,6 +72,7 @@ void shell_utils(byte buf[2880][512]) {
     insert_file(buf, "cd", 0x0);
     insert_file(buf, "cp", 0x0);
     insert_file(buf, "ls", 0x0);
+    insert_file(buf, "mkdir", 0x0);
     create_folder(buf, "mayano", 0x1);
     create_folder(buf, "top", 0x1);
     create_folder(buf, "gun", 0x1);
