@@ -74,7 +74,9 @@ void shell_utils(byte buf[2880][512]) {
     insert_file(buf, "ls", 0x0);
     insert_file(buf, "mkdir", 0x0);
     insert_file(buf, "cat", 0x0);
+    insert_file(buf, "mv", 0x0);
     insert_file(buf, "file_src/tc_a/hoho", 0x1);
+    insert_file(buf, "file_src/tc_a/hehe", 0x1);
     create_folder(buf, "mayano", 0x1);
     create_folder(buf, "top", 0x1);
     create_folder(buf, "gun", 0x1);

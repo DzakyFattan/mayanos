@@ -41,25 +41,25 @@ int main() {
             setMessage(&msg);
             meta.node_name = "ls";
             meta.parent_index = 0x00;
-            exec(&meta, 0x7000);
+            exec(&meta, 0x4000);
         } else if (strcmp(command, "cd")) {
             strcpy(msg.arg1, input_buf);
             setMessage(&msg);
             meta.node_name = "cd";
             meta.parent_index = 0x00; // bin
-            exec(&meta, 0x6000);
+            exec(&meta, 0x4000);
         } else if (strcmp(command, "cp")) {
             bufferToMessage(input_buf, &msg);
             setMessage(&msg);
             meta.node_name = "cp";
             meta.parent_index = 0x00; // bin
-            exec(&meta, 0x5000);
+            exec(&meta, 0x4000);
         } else if (strcmp(command, "mkdir")) {
             strcpy(msg.arg1, input_buf);
             setMessage(&msg);
             meta.node_name = "mkdir";
             meta.parent_index = 0x00; // bin
-            exec(&meta, 0x8000);
+            exec(&meta, 0x4000);
         } else if (strcmp(command, "rm")) {
             puts("rm\n");
         } else if (strcmp(command, "cat")) {
@@ -67,9 +67,13 @@ int main() {
             setMessage(&msg);
             meta.node_name = "cat";
             meta.parent_index = 0x00; // bin
-            exec(&meta, 0x9000);
+            exec(&meta, 0x4000);
         } else if (strcmp(command, "mv")) {
-            puts("mc\n");
+            strcpy(msg.arg1, input_buf);
+            setMessage(&msg);
+            meta.node_name = "mv";
+            meta.parent_index = 0x00; // bin
+            exec(&meta, 0x4000);
         } else if (strcmp(input_buf, "Aku sayang sama Maya-chin")) {
             putsColor("Hehe, Maya juga sayang sama Trainer-chan ( ^ w ^) <3<3<3\r\n", BROWN);
         } else {

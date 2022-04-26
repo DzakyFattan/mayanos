@@ -37,6 +37,8 @@ program: lib
 	ld86 -o out/cat -d out/cat.o $(LIBRARY)
 	bcc -ansi -c -o out/cp.o src/c/cp.c
 	ld86 -o out/cp -d out/cp.o $(LIBRARY)
+	bcc -ansi -c -o out/mv.o src/c/mv.c
+	ld86 -o out/mv -d out/mv.o $(LIBRARY)
 
 tcgen:
 	gcc tc_gen/tc_gen.c tc_gen/tc_lib -o out/tc_gen

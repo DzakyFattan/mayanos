@@ -28,7 +28,7 @@ int main() {
 
     meta.node_name = "shell";
     meta.parent_index = 0;
-    executeProgram(&meta, 0x4000);
+    executeProgram(&meta, 0x2000);
 
     shell();
     while (true)
