@@ -67,12 +67,14 @@ void tc_D(byte buf[2880][512]) {
 
 void shell_utils(byte buf[2880][512]) {
     create_folder(buf, "bin", 0xFF);
+    create_folder(buf, "user", 0xFF);
     insert_file(buf, "shell", 0x0);
     insert_file(buf, "cd", 0x0);
     insert_file(buf, "cp", 0x0);
-    create_folder(buf, "mayano", 0x0);
-    create_folder(buf, "top", 0x0);
-    create_folder(buf, "gun", 0x0);
+    insert_file(buf, "ls", 0x0);
+    create_folder(buf, "mayano", 0x1);
+    create_folder(buf, "top", 0x1);
+    create_folder(buf, "gun", 0x1);
 }
 
 int main(int argc, char const *argv[]) {

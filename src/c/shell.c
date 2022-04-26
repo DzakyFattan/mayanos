@@ -38,9 +38,11 @@ int main() {
         if (strcmp(command, "exit")) {
             puts("\nTrainer-chan mau pergi? :( Kapan-kapan main ke sini lagi ya! ( ^ w ^) <3\r\n");
         } else if (strcmp(command, "ls")) {
-            puts("ls\n");
+            setMessage(&msg);
+            meta.node_name = "ls";
+            meta.parent_index = 0x00;
+            exec(&meta, 0x7000);
         } else if (strcmp(command, "cd")) {
-            // bufferToMessage(input_buf, &msg);
             strcpy(msg.arg1, input_buf);
             setMessage(&msg);
             meta.node_name = "cd";
