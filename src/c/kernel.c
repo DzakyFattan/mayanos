@@ -6,15 +6,21 @@
 
 #include "header/kernel.h"
 
-int cursor_x = 0x0;
-int cursor_y = 0x0;
-
 int main() {
     struct file_metadata meta;
     fillMap();
     makeInterrupt21();
     interrupt(0x10, 0x0010, 0x0, 0x0, 0x0);
-    clearScreen();
+    //interrupt(0x10, 0x0003, 0x0, 0x0, 0x0);
+    //clearScreen();
+    interrupt(0x21, 0xB, "Pin Pon!! This is MayanOS!! >//<\n", BROWN, 0x0);
+    interrupt(0x10, 0x0E0A, 0x0, 0x0, 0x0);
+    interrupt(0x21, 0xB, ":::=======  :::====  ::: === :::====  :::= === :::====  :::=== \n", YELLOW, 0x0);
+    interrupt(0x21, 0xB, "::: === === :::  === ::: === :::  === :::===== :::  === :::    \n", YELLOW, 0x0);
+    interrupt(0x21, 0xB, "=== === === ========  =====  ======== ======== ===  ===  ===== \n", YELLOW, 0x0);
+    interrupt(0x21, 0xB, "===     === ===  ===   ===   ===  === === ==== ===  ===     ===\n", YELLOW, 0x0);
+    interrupt(0x21, 0xB, "===     === ===  ===   ===   ===  === ===  ===  ======  ====== \n", YELLOW, 0x0);
+    interrupt(0x21, 0xB, "\nMaya siap membantu Trainer-chan, You Copy?! ( ^ w ^)7\r\n", BROWN, 0x0);
 
     meta.node_name = "shell";
     meta.parent_index = 0;
@@ -47,6 +53,7 @@ int handleInterrupt21(int AX, int BX, int CX, int DX) {
         break;
     case 0x6:
         AX = strlen(BX);
+        break;
     case 0x7:
         AX = strcmp(BX, CX);
         break;
@@ -94,7 +101,7 @@ void executeProgram(struct file_metadata *metadata, int segment) {
         }
         launchProgram(segment);
     } else
-        printString("exec: Trainer-chan!! file tidak ditemukan!!\r\n");
+        printString("execute: Trainer-chan!! file tidak ditemukan!!\r\n");
 }
 
 void exit() {
@@ -104,174 +111,139 @@ void exit() {
     executeProgram(&shell, 0x4000);
 }
 
-void showCursorPosition() {
-    printString("\ncursorX, cursorY:\n");
-    printNumber(cursor_x);
-    printString(" ");
-    printNumber(cursor_y / 0x100);
-    printString("\n");
+
+void clearScreen() {
+    interrupt(0x10, 0x0700, 0x0700, 0x0, SCREEN_WIDTH + SCREEN_HEIGHT);
+    interrupt(0x10, 0x0200, 0x0, 0x0, 0x0);
 }
 
 void printString(char *string) {
-    int i, scrollLine = 0;
-    int width_cap = 80;
-    for (i = 0; i < strlen(string); i++) {
-        if (string[i] == '\r' || string[i] == '\n') {
-            cursor_x = 0;
-            cursor_y += 0x0100;
-            if (cursor_y >= 0x1900) {
-                scrollLine = div(cursor_y - 0x1800, 0x100);
-                scrollController(scrollLine);
-                cursor_y = 0x1900 - (scrollLine * 0x100);
-            }
-            interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y);
+    for (; *string != '\0'; string++) {
+        if (*string == '\r' || *string == '\n') {
+            interrupt(0x10, 0x0E0A, 0x0, 0x0, 0x0);
+            interrupt(0x10, 0x0E0D, 0x0, 0x0, 0x0);
         } else {
-            int AX = 0x0E00 + string[i];
+            int AX = 0x0E00 + *string;
             interrupt(0x10, AX, 0x0007, 0x0, 0x0);
-            cursor_x++;
         }
     }
 }
 
 void printColor(char *string, int color) {
-    int i, scrollLine = 0;
-    int width_cap = 80;
-    for (i = 0; i < strlen(string); i++) {
-        if (string[i] == '\r' || string[i] == '\n') {
-            cursor_x = 0;
-            cursor_y += 0x0100;
-            if (cursor_y >= 0x1900) {
-                scrollLine = div(cursor_y - 0x1800, 0x100);
-                scrollController(scrollLine);
-                cursor_y = 0x1900 - (scrollLine * 0x100);
-            }
-            interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y);
+    for (; *string != '\0'; string++) {
+        if (*string == '\r' || *string == '\n') {
+            interrupt(0x10, 0x0E0A, 0x0, 0x0, 0x0);
+            interrupt(0x10, 0x0E0D, 0x0, 0x0, 0x0);
         } else {
-            int AX = 0x0E00 + string[i];
-            interrupt(0x10, AX, 0x0000 + color, 0x0, 0x0);
-            cursor_x++;
+            int AX = 0x0E00 + *string;
+            interrupt(0x10, AX, 0x0 + color, 0x0, 0x0);
         }
     }
 }
 
 void printNumber(int number) {
     int arr[10];
-    int j, r, i = 0;
+    int digit;
+    int j, i = 0;
 
-    if (number == 0) {
-        int AX = 0x0E00 + 48;
-        interrupt(0x10, AX, 0x0007, 0x0, 0x0);
-        cursor_x++;
-    }
+    while (div(number, 10) != 0) {
+        digit = mod(number, 10);
 
-    while (number != 0) {
-        r = mod(number, 10);
-
-        arr[i] = r;
+        arr[i] = digit;
         i++;
-        number = number / 10;
+        number = div(number, 10);
     }
 
-    for (j = i - 1; j > -1; j--) {
+    for (j = i - 1; j >= 0; j--) {
         int AX = 0x0E00 + arr[j] + 48;
         interrupt(0x10, AX, 0x0007, 0x0, 0x0);
-        cursor_x++;
     }
 }
 
 void readString(char *string) {
-    int AX, scrollLine, num, input, delta;
-    int i = 0;
+    int AX, num, input;
+    int cur = 0;
     int j = 0;
-    int currentBufLength = 0;
+    int currentBufLength = 0; // act as where to put null string
     while (true) {
         input = interrupt(0x16, 0x00, 0x00, 0x00, 0x00);
         num = mod(input, 0x100);
         input = div(input, 0x100);
+
         if (num == 0) {
-            if (input == 0x48 && i > 0) {
-                cursor_x -= i;
-                interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y + cursor_x);
-                i = 0;
-            } else if (input == 0x50 && i < currentBufLength) {
-                cursor_x += currentBufLength - i;
-                interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y + cursor_x);
-                i = currentBufLength;
-            } else if (input == 0x4B && i > 0) {
-                cursor_x--;
-                interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y + cursor_x);
-                i--;
-            } else if (input == 0x4D && i < currentBufLength) {
-                cursor_x++;
-                interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y + cursor_x);
-                i++;
+            // handling arrow keys
+            if (input == 0x48 && cur > 0) {
+                for (j = 0; j < cur; j++) {
+                    interrupt(0x10, 0x0E08, 0x0, 0x0, 0x0);
+                }
+                cur = 0;
+            } else if (input == 0x50 && cur < currentBufLength) {
+                for (j = cur; j < currentBufLength; j++) {
+                    interrupt(0x10, 0x0E00 + string[j], 0x0007, 0x0, 0x0);
+                }
+                cur = currentBufLength;
+            } else if (input == 0x4B && cur > 0) {
+                interrupt(0x10, 0x0E08, 0x0, 0x0, 0x0);
+                cur--;
+            } else if (input == 0x4D && cur < currentBufLength) {
+                interrupt(0x10, 0x0E00 + string[cur], 0x0007, 0x0, 0x0);
+                cur++;
             }
             continue;
         } else if (num == 13) {
-            cursor_x = 0;
-            cursor_y += 0x0100;
-            if (cursor_y >= 0x1900) {
-                scrollLine = div(cursor_y - 0x1800, 0x100);
-                scrollController(scrollLine);
-                cursor_y = 0x1900 - (scrollLine * 0x100);
-                interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y);
-            }
+            // enter
+            interrupt(0x10, 0x0E0A, 0x0, 0x0, 0x0);
+            interrupt(0x10, 0x0E0D, 0x0, 0x0, 0x0);
             break;
         } else if (num == 8) {
-            if (i > 0) {
-                cursor_x--;
-                interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y + cursor_x);
-                interrupt(0x10, 0x0A00, 0x0000, i + 1, 0x0);
-                i--;
+            // backspace
+            if (cur > 0) {
+                interrupt(0x10, 0x0E08, 0x0, 0x0, 0x0);
+                cur--;
                 currentBufLength--;
-                for (j = i; j < currentBufLength; j++) {
+                for (j = cur; j < currentBufLength; j++) {
+                    interrupt(0x10, 0x0E00 + string[j], 0x0007, 0x0, 0x0);
                     string[j] = string[j + 1];
-                    interrupt(0x10, 0x0A00 + string[j], 0x0000, 0x1, cursor_y + cursor_x + j - 1);
                 }
-                interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y + cursor_x);
-                string[i + 1] = 0;
+                interrupt(0x10, 0x0E00 + ' ', 0x0007, 0x0, 0x0);
+                for (j = currentBufLength; j >= cur; j--) {
+                    interrupt(0x10, 0x0E08, 0x0, 0x0, 0x0);
+                }
+                string[j + 1] = '\0';
             }
             continue;
 
         } else if (num == 27) {
-            clear(string, i + 1);
-            currentBufLength -= i;
-            cursor_x -= i;
-            interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y + cursor_x);
-            interrupt(0x10, 0x0A00, 0x0000, i + 1, 0x0);
-            i = 0;
+            // escape
+            clear(string, cur + 1);
+            for (j = 0; j < currentBufLength; j++) {
+                interrupt(0x10, 0x0E08, 0x0, 0x0, 0x0);
+                interrupt(0x10, 0x0E00 + ' ', 0x0007, 0x0, 0x0);
+                interrupt(0x10, 0x0E08, 0x0, 0x0, 0x0);
+            }
+            currentBufLength = 0;
+            cur = 0;
             continue;
         }
-        delta = i - currentBufLength;
-        for (j = i; j < currentBufLength; j++) {
-            cursor_x++;
-            interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y + cursor_x);
-            interrupt(0x10, 0x0A00 + string[j], 0x0000, 0x1, 0x0);
-        }
-        for (j = currentBufLength; j > i; j--) {
-            string[j] = string[j - 1];
-            cursor_x--;
-        }
-        interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y + cursor_x);
-        string[i] = num;
 
         // print character on the screen
         AX = 0x0E00 + num;
         interrupt(0x10, AX, 0x0007, 0x0, 0x0);
-        i++;
-        cursor_x++;
+        cur++;
         currentBufLength++;
-    }
-    i = currentBufLength;
-    string[i] = '\0';
-    interrupt(0x10, 0x0200, 0x00, 0x0, cursor_y);
-}
 
-void clearScreen() {
-    interrupt(0x10, 0x0200, 0x0, 0x0, 0x0);
-    cursor_x = 0x0;
-    cursor_y = 0x0;
-    interrupt(0x10, 0x0700, 0x0000, 0x0, SCREEN_WIDTH + SCREEN_HEIGHT);
+        // shift characters on the right if exists
+        for (j = cur; j < currentBufLength; j++) {
+            interrupt(0x10, 0x0E00 + string[j-1], 0x0007, 0x0, 0x0);
+        }
+        for (j = currentBufLength - 1; j >= cur; j--) {
+            string[j] = string[j - 1];
+            interrupt(0x10, 0x0E08, 0x0, 0x0, 0x0);
+        }
+        string[cur-1] = num;
+
+    }
+    string[currentBufLength] = '\0';
 }
 
 void writeSector(byte *buffer, int sector_number) {
@@ -632,8 +604,6 @@ void shell() {
             executeProgram(&shell, 0x4000);
         } else if (strcmp(input_buf, "Aku sayang sama Maya-chin")) {
             printColor("Hehe, Maya juga sayang sama Trainer-chan ( ^ w ^) <3<3<3\r\n", BROWN);
-        } else if (strcmp(input_buf, "cur")) {
-            showCursorPosition();
         } else {
             printColor("Maya ngga ngerti perintah Trainer-chan (# -_-)\r\n", BROWN);
         }
@@ -902,16 +872,18 @@ void cat(char *input_buf, byte current_dir) {
         printString("\n");
         i++;
     }
-    upLimit = line_track - 22;
-    downLimit = line_track;
+
+    // line track starts at 0
+    upLimit = line_track - 21; // top most line
+    downLimit = line_track; // bottom most line, the last line of the text
 
     // print file info
-    printString("Nama File: ");
+    printString("========================\nNama File: ");
     printString(file_name);
     printString("\n");
 
     // scroll
-    printString("Sudah selesai bacanya? Tekan ESC untuk keluar ya, Trainer-chan!! ^^");
+    printColor("Sudah selesai bacanya? Tekan ESC untuk keluar ya, Trainer-chan!! ^^", BROWN);
     while (true) {
         input = interrupt(0x16, 0x00, 0x00, 0x00, 0x00);
         num = mod(input, 0x100);
@@ -920,20 +892,25 @@ void cat(char *input_buf, byte current_dir) {
             if (input == 0x48 && upLimit > 0) {
                 upLimit--;
                 downLimit--;
-                interrupt(0x10, 0x0701, 0x0700, 0x0, 0x1650);
+                interrupt(0x10, 0x0701, 0x0, 0x0000, 0x1549);
                 interrupt(0x10, 0x0200, 0x0, 0x0, 0x0000);
-                printString(lines[upLimit]);
+                for (i = upLimit; i <= upLimit + 21; i++) {
+                    interrupt(0x10, 0x0A00 + ' ', 0x0, 80, 0x0);
+                    interrupt(0x10, 0x0E0D, 0x0, 0x0, 0x0);
+                    printString(lines[i]);
+                    printString("\n");
+                }
             } else if (input == 0x50 && downLimit < line_track) {
                 upLimit++;
                 downLimit++;
-                interrupt(0x10, 0x0601, 0x0700, 0x0, 0x1650);
-                interrupt(0x10, 0x0200, 0x0, 0x0, 0x1600);
+                interrupt(0x10, 0x0601, 0x0, 0x0000, 0x1549);
+                interrupt(0x10, 0x0200, 0x0, 0x0, 0x1500);
                 printString(lines[downLimit]);
             }
-            interrupt(0x10, 0x0200, 0x0, 0x0, cursor_y + cursor_x);
             continue;
 
         } else if (num == 27) {
+            interrupt(0x10, 0x0200, 0x0, 0x0, 0x1849);
             printString("\n");
             break;
         }

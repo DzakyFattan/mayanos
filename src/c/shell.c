@@ -21,16 +21,8 @@ int main() {
     msg.current_directory = current_dir;
     msg.next_program_segment = 0x200;
 
-    putsColor("Pin Pon!! This is MayanOS!! >//<\r\n", BROWN);
-    putsColor(":::=======  :::====  ::: === :::====  :::= === :::====  :::=== \n", YELLOW);
-    putsColor("::: === === :::  === ::: === :::  === :::===== :::  === :::    \n", YELLOW);
-    putsColor("=== === === ========  =====  ======== ======== ===  ===  ===== \n", YELLOW);
-    putsColor("===     === ===  ===   ===   ===  === === ==== ===  ===     ===\n", YELLOW);
-    putsColor("===     === ===  ===   ===   ===  === ===  ===  ======  ====== \n", YELLOW);
-    putsColor("\nMaya siap membantu Trainer-chan, You Copy?! ( ^ w ^)7\r\n", BROWN);
-
     while (true) {
-        putsColor("MayanOS:", BROWN);
+        putsColor("MayanOS: ", BROWN);
         interrupt(0x21, 0xC, path_str, current_dir, 0);
         puts("$ ");
 

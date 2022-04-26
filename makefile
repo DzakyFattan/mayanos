@@ -37,7 +37,7 @@ tcgen:
 
 app:
 	bcc -ansi -c -o out/shell.o src/c/shell.c
-	ld86 -o out/shell -d out/shell.o $(LIBRARY)
+	ld86 -o out/shell_utils/shell -d out/shell.o $(LIBRARY)
 shell:
 	make lib app
 
