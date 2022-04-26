@@ -49,7 +49,8 @@ int main() {
             meta.parent_index = 0x00; // bin
             exec(&meta, 0x4000);
         } else if (strcmp(command, "cp")) {
-            bufferToMessage(input_buf, &msg);
+            // bufferToMessage(input_buf, &msg);
+            strcpy(msg.arg1, input_buf);
             setMessage(&msg);
             meta.node_name = "cp";
             meta.parent_index = 0x00; // bin

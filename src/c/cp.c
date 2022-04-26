@@ -8,40 +8,76 @@
 #include "string.h"
 
 int main() {
-    struct message msg;
     int i, j;
-    char* arg1;
-    char* arg2;
-    char* copy_name;
-    char dest_name[16];
-    byte buffer[8192];
+    char file_source[16];
+    char *copy_name = "_copy\0";
+    char *input_buf;
+    char file_dest[16];
+    byte buffer[4096];
+    byte current_dir;
     enum fs_retcode return_code;
     struct file_metadata metadata;
+    struct message msg;
 
     getMessage(&msg);
-    copy_name = "_copy\0";
+    current_dir = msg.current_directory;
+    input_buf = msg.arg1;
+
     return_code = 0;
-    arg1 = msg.arg1;
-    arg2 = msg.arg2;
-    // tidak ada nama file asal
-    if (arg1[0] == 0) {
+    for (i = 0; i < 16; i++) {
+        file_source[i] = '\0';
+        file_dest[i] = '\0';
+    }
+
+    i = 2;
+    while (input_buf[i] == ' ' && input_buf[i] != '\0')
+        i++;
+    if (input_buf[i] == '\0') {
         puts("cp: Trainer-chan!! File asal tidak diberikan!\n");
         exit();
     }
 
-    if (strlen(arg1) == strlen(arg2)) {
-        if (strcmp(arg1, arg2)) {
+    j = 0;
+    while (input_buf[i] != ' ' && input_buf[i] != '\0') {
+        file_source[j] = input_buf[i];
+        i++;
+        j++;
+    }
+
+    while (input_buf[i] == ' ')
+        i++;
+
+    j = 0;
+    while (input_buf[i] != '\0' && input_buf[i] != ' ') {
+        file_dest[j] = input_buf[i];
+        i++;
+        j++;
+    }
+
+    if (strlen(file_dest) == 0) {
+        for (i = 0; i < strlen(file_source); i++) {
+            file_dest[i] = file_source[i];
+        }
+        j = 0;
+        while (i < 16 && j < 6) {
+            file_dest[i] = copy_name[j];
+            i++;
+            j++;
+        }
+
+        file_dest[15] = '\0';
+    }
+
+    if (strlen(file_dest) == strlen(file_source)) {
+        if (strcmp(file_dest, file_source)) {
             puts("mv: Trainer-chan!! Nama file asal sama dengan nama file tujuan!\n");
             exit();
         }
     }
 
-    // clear buffer
-    for (i = 0; i < 16; i++) dest_name[i] = '\0';
-
     metadata.buffer = buffer;
-    metadata.node_name = arg1;
-    metadata.parent_index = msg.current_directory;
+    metadata.node_name = file_source;
+    metadata.parent_index = current_dir;
 
     read(&metadata, &return_code);
 
@@ -52,26 +88,13 @@ int main() {
         exit();
     }
 
-    if (arg2[0] == 0) {
-        strcpy(dest_name, arg1);
-        i = 0;
-        j = 0;
-        while (dest_name[i] != '\0') i++;
-        while (i < 16 && j < 6) {
-            dest_name[i] = copy_name[j];
-            i++;
-            j++;
-        }
-    } else {
-        strcpy(dest_name, arg2);
-    }
-    metadata.node_name = dest_name;
+    metadata.node_name = file_dest;
 
     // parent_index, buffer, dan filesize sudah ada
     write(&metadata, &return_code);
 
     if (return_code != 0) {
-        puts("mv: Trainer-chan!! Tulis file tujuan gagal dengan kode error ");
+        puts("Tulis file tujuan gagal dengan kode error ");
         putsNumber(return_code);
         puts("\n");
         exit();
