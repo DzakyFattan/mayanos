@@ -2,25 +2,37 @@
 // PENTING : FUNGSI PERTAMA YANG DIDEFINISIKAN ADALAH main(),
 //   cek spesifikasi untuk informasi lebih lanjut
 
+// TODO : Tambahkan implementasi kode C
+
 #include "header/kernel.h"
 
 int main() {
     struct file_metadata meta;
     struct message msg_shell;
+    int i = 0;
+    int j = 0;
     fillMap();
     makeInterrupt21();
     interrupt(0x10, 0x0010, 0x0, 0x0, 0x0);
     // interrupt(0x10, 0x0003, 0x0, 0x0, 0x0);
     // clearScreen();
     interrupt(0x21, 0xB, "Pin Pon!! This is MayanOS!! >//<\n", BROWN, 0x0);
-    interrupt(0x10, 0x0E0A, 0x0, 0x0, 0x0);
-    interrupt(0x21, 0xB, ":::=======  :::====  ::: === :::====  :::= === :::====  :::=== \n", YELLOW, 0x0);
-    interrupt(0x21, 0xB, "::: === === :::  === ::: === :::  === :::===== :::  === :::    \n", YELLOW, 0x0);
-    interrupt(0x21, 0xB, "=== === === ========  =====  ======== ======== ===  ===  ===== \n", YELLOW, 0x0);
-    interrupt(0x21, 0xB, "===     === ===  ===   ===   ===  === === ==== ===  ===     ===\n", YELLOW, 0x0);
-    interrupt(0x21, 0xB, "===     === ===  ===   ===   ===  === ===  ===  ======  ====== \n", YELLOW, 0x0);
+    interrupt(0x10, 0x0E0A, 0x0, 0x0, 0x0);                 
+
+    interrupt(0x21, 0xB, "\n", 0x0, 0x0);
+    interrupt(0x21, 0xB, "\n", 0x0, 0x0);
+    interrupt(0x21, 0xB, "\n", 0x0, 0x0);
+    interrupt(0x21, 0xB, "\n", 0x0, 0x0);
+    interrupt(0x21, 0xB, "                           8::8::8                          8:::88 8::::8\n", WHITE, 0x0);
+    interrupt(0x21, 0xB, "                           8  8  8 eeeee e    e eeeee eeeee 8    8 8     \n", WHITE, 0x0);
+    interrupt(0x21, 0xB, "                           8e 8  8 8   8 8    8 8   8 8   8 8    8 8eeeee\n", WHITE, 0x0);
+    interrupt(0x21, 0xB, "                           88 8  8 8eee8 8eeee8 8eee8 8e  8 8    8     88\n", WHITE, 0x0);
+    interrupt(0x21, 0xB, "                           88 8  8 88  8   88   88  8 88  8 8    8 e   88\n", WHITE, 0x0);
+    interrupt(0x21, 0xB, "                           88 8  8 88  8   88   88  8 88  8 8eeee8 8eee88\n", WHITE, 0x0);
     interrupt(0x21, 0xB, "\nMaya siap membantu Trainer-chan, You Copy?! ( ^ w ^)7\r\n", BROWN, 0x0);
 
+    splash();
+    
     // message shell
     msg_shell.current_directory = 0xFF;
     writeSector(&msg_shell, 0x105);
@@ -78,7 +90,7 @@ int handleInterrupt21(int AX, int BX, int CX, int DX) {
         printNumber(BX);
         break;
     case 0xE:
-        // reserved
+        exit();
         break;
     case 0xF:
         executeProgram(BX, CX);
@@ -106,8 +118,15 @@ void executeProgram(struct file_metadata *metadata, int segment) {
         printString("execute: Trainer-chan!! file tidak ditemukan!!\r\n");
 }
 
+void exit() {
+    struct file_metadata shell;
+    shell.node_name = "shell";
+    shell.parent_index = 0;
+    executeProgram(&shell, 0x4000);
+}
+
 void clearScreen() {
-    interrupt(0x10, 0x0700, 0x0700, 0x0, SCREEN_WIDTH + SCREEN_HEIGHT);
+    interrupt(0x10, 0x0700, 0x0000, 0x0, SCREEN_WIDTH + SCREEN_HEIGHT);
     interrupt(0x10, 0x0200, 0x0, 0x0, 0x0);
 }
 
@@ -583,4 +602,166 @@ void printCWD(byte current_dir) {
     }
     path_str[j] = '\0';
     printColor(path_str, YELLOW);
+}
+
+void splash() {
+    int line_track = 0;
+    int i = 0;
+    int j = 0;
+    int x = 0;
+    int y = 21;
+
+    struct file_metadata metadata;
+    enum fs_retcode retcode;
+    byte metadata_buf[8192];
+
+    metadata.buffer = metadata_buf;
+    metadata.node_name = "splash0";
+    metadata.parent_index = 0x2;
+
+    read(&metadata, &retcode);
+
+    if (retcode == FS_R_NODE_NOT_FOUND) {
+        printString("cat: Trainer-chan!! File tidak ditemukan!\r\n");
+        return;
+    }
+
+    if (retcode == FS_R_TYPE_IS_FOLDER) {
+        printString("cat: Trainer-chan!! Kamu memasukkan input Folder!\r\n");
+        return;
+    }
+
+    while (i < metadata.filesize) {
+        if (metadata.buffer[i] == '\0') {
+            //lines[line_track][j] = '\0';
+            break;
+        } else if (metadata.buffer[i] == '\r' || metadata.buffer[i] == '\n') {
+            if (metadata.buffer[i] == '\r') {
+                i++;
+            }
+            //lines[line_track][j] = '\0';
+            line_track++;
+            y++;
+            j = 0;
+            x = 0;
+        } else {
+            //lines[line_track][j] = metadata.buffer[i];
+            if (metadata.buffer[i] == ' ') {
+                interrupt(0x10, 0x0C0F, 0x0, 0x0 + x, 0x0 + y);
+            } else {
+                interrupt(0x10, 0x0C06, 0x0, 0x0 + x, 0x0 + y);
+            }
+            j++;
+            x++;
+        }
+        i++;
+    }
+
+    metadata.node_name = "splash1";
+    metadata.parent_index = 0x2;
+
+    read(&metadata, &retcode);
+
+    i = 0;
+    j = 0;
+    x = 96;
+    y = 21;
+
+    while (i < metadata.filesize) {
+        if (metadata.buffer[i] == '\0') {
+            //lines[line_track][j] = '\0';
+            break;
+        } else if (metadata.buffer[i] == '\r' || metadata.buffer[i] == '\n') {
+            if (metadata.buffer[i] == '\r') {
+                i++;
+            }
+            //lines[line_track][j] = '\0';
+            line_track++;
+            y++;
+            j = 0;
+            x = 96;
+        } else {
+            //lines[line_track][j] = metadata.buffer[i];
+            if (metadata.buffer[i] == ' ') {
+                interrupt(0x10, 0x0C0F, 0x0, 0x0 + x, 0x0 + y);
+            } else {
+                interrupt(0x10, 0x0C06, 0x0, 0x0 + x, 0x0 + y);
+            }
+            j++;
+            x++;
+        }
+        i++;
+    }
+
+    metadata.node_name = "splash2";
+    metadata.parent_index = 0x2;
+
+    read(&metadata, &retcode);
+
+    i = 0;
+    j = 0;
+    x = 0;
+    y = 21 + 72;
+
+    while (i < metadata.filesize) {
+        if (metadata.buffer[i] == '\0') {
+            //lines[line_track][j] = '\0';
+            break;
+        } else if (metadata.buffer[i] == '\r' || metadata.buffer[i] == '\n') {
+            if (metadata.buffer[i] == '\r') {
+                i++;
+            }
+            //lines[line_track][j] = '\0';
+            line_track++;
+            y++;
+            j = 0;
+            x = 0;
+        } else {
+            //lines[line_track][j] = metadata.buffer[i];
+            if (metadata.buffer[i] == ' ') {
+                interrupt(0x10, 0x0C0F, 0x0, 0x0 + x, 0x0 + y);
+            } else {
+                interrupt(0x10, 0x0C06, 0x0, 0x0 + x, 0x0 + y);
+            }
+            j++;
+            x++;
+        }
+        i++;
+    }
+
+    metadata.node_name = "splash3";
+    metadata.parent_index = 0x2;
+
+    read(&metadata, &retcode);
+
+    i = 0;
+    j = 0;
+    x = 96;
+    y = 21 + 72;
+
+    while (i < metadata.filesize) {
+        if (metadata.buffer[i] == '\0') {
+            //lines[line_track][j] = '\0';
+            break;
+        } else if (metadata.buffer[i] == '\r' || metadata.buffer[i] == '\n') {
+            if (metadata.buffer[i] == '\r') {
+                i++;
+            }
+            //lines[line_track][j] = '\0';
+            line_track++;
+            y++;
+            j = 0;
+            x = 96;
+        } else {
+            //lines[line_track][j] = metadata.buffer[i];
+            if (metadata.buffer[i] == ' ') {
+                interrupt(0x10, 0x0C0F, 0x0, 0x0 + x, 0x0 + y);
+            } else {
+                interrupt(0x10, 0x0C06, 0x0, 0x0 + x, 0x0 + y);
+            }
+            j++;
+            x++;
+        }
+        i++;
+    }
 }

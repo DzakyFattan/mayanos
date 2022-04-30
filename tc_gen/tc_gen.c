@@ -68,6 +68,7 @@ void tc_D(byte buf[2880][512]) {
 void shell_utils(byte buf[2880][512]) {
     create_folder(buf, "bin", 0xFF);
     create_folder(buf, "user", 0xFF);
+    create_folder(buf, "splash", 0x0);
     insert_file(buf, "shell", 0x0);
     insert_file(buf, "cd", 0x0);
     insert_file(buf, "cp", 0x0);
@@ -75,6 +76,10 @@ void shell_utils(byte buf[2880][512]) {
     insert_file(buf, "mkdir", 0x0);
     insert_file(buf, "cat", 0x0);
     insert_file(buf, "mv", 0x0);
+    insert_file(buf, "splash0", 0x2);
+    insert_file(buf, "splash1", 0x2);
+    insert_file(buf, "splash2", 0x2);
+    insert_file(buf, "splash3", 0x2);
     insert_file(buf, "file_src/tc_a/hoho", 0x1);
     insert_file(buf, "file_src/tc_a/hehe", 0x1);
     create_folder(buf, "mayano", 0x1);

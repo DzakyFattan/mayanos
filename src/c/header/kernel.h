@@ -38,3 +38,5 @@ void write(struct file_metadata *metadata, enum fs_retcode *return_code);
 void read(struct file_metadata *metadata, enum fs_retcode *return_code);
 
 void printCWD(byte current_dir);
+
+void splash();

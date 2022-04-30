@@ -42,6 +42,8 @@ int main() {
 
         if (strcmp(command, "exit")) {
             puts("\nTrainer-chan mau pergi? :( Kapan-kapan main ke sini lagi ya! ( ^ w ^) <3\r\n");
+        } else if (strcmp(command, "clear")) {
+            interrupt(0x21, 0xA, 0x0, 0x0 ,0x0);
         } else if (strcmp(command, "ls")) {
             meta.node_name = "ls";
             meta.parent_index = 0x00;
