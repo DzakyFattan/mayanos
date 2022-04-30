@@ -14,37 +14,17 @@ int main() {
     struct node_filesystem node_fs_buffer;
     struct message msg;
     struct message msg_next;
-    char first_arg[19];
-    char second_arg[19];
-    char *input_buf;
+    char *first_arg;
+    char *second_arg;
 
     getMessage(&msg, getCurrentSegment());
     getMessage(&msg_next, msg.next_program_segment);
     msg_next.current_directory = msg.current_directory;
     setMessage(&msg_next, msg.next_program_segment);
     current_dir = msg.current_directory;
-    input_buf = msg.arg1;
+    first_arg = msg.arg1;
+    second_arg = msg.arg2;
 
-    for (i = 0; i < 19; i++) {
-        first_arg[i] = '\0';
-        second_arg[i] = '\0';
-    }
-
-    i = 3;
-    j = 0;
-    while (input_buf[i] != ' ') {
-        first_arg[j] = input_buf[i];
-        i++;
-        j++;
-    }
-
-    i++;
-    j = 0;
-    while (input_buf[i] != '\0') {
-        second_arg[j] = input_buf[i];
-        i++;
-        j++;
-    }
     // get file system node
     readSector(&node_fs_buffer.nodes[0], FS_NODE_SECTOR_NUMBER);
     readSector(&node_fs_buffer.nodes[32], FS_NODE_SECTOR_NUMBER + 0x1);

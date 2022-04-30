@@ -23,18 +23,17 @@ int main() {
     getMessage(&msg_next, msg.next_program_segment);
     msg_next.current_directory = msg.current_directory;
     setMessage(&msg_next, msg.next_program_segment);
-    
+
     current_dir = msg.current_directory;
     input_buf = msg.arg1;
 
-    if (strcmp(input_buf, "mkdir")) {
+    if (strcmp(input_buf, "")) {
         puts("cp: Trainer-chan!! Nama folder tidak diberikan!\n");
         exit();
     }
 
-    strcpy(folder_name, input_buf + 6);
-    input_len = strlen(input_buf);
-    len = input_len - 6;
+    folder_name = input_buf;
+    len = strlen(folder_name);
 
     folder_name[len] = '\0';
     metadata.node_name = folder_name;

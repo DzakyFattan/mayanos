@@ -29,11 +29,9 @@ int main() {
     getMessage(&msg_next, msg.next_program_segment);
     msg_next.current_directory = msg.current_directory;
     setMessage(&msg_next, msg.next_program_segment);
+    file_name = msg.arg1;
 
     current_dir = msg.current_directory;
-    input_buf = msg.arg1;
-
-    strcpy(file_name, input_buf + 4);
 
     metadata.buffer = metadata_buf;
     metadata.node_name = file_name;
