@@ -18,16 +18,18 @@ int main() {
     int k = 0;
 
     struct message msg;
+    struct message msg_next;
     struct node_filesystem node_fs_buffer;
 
-    getMessage(&msg);
+    getMessage(&msg, getCurrentSegment());
+    getMessage(&msg_next, msg.next_program_segment);
     current_dir = &(msg.current_directory);
     path_str = msg.arg1;
 
     readSector(&node_fs_buffer.nodes[0], FS_NODE_SECTOR_NUMBER);
     readSector(&node_fs_buffer.nodes[32], FS_NODE_SECTOR_NUMBER + 0x1);
 
-    strcpy(path, path_str + 3);
+    strcpy(path, path_str);
     path_length = strlen(path);
 
     tempdst = *current_dir;
@@ -39,14 +41,16 @@ int main() {
         while (i < 64) {
             if (*current_dir == i) {
                 msg.current_directory = node_fs_buffer.nodes[i].parent_node_index;
-                setMessage(&msg);
+                msg_next.current_directory = msg.current_directory;
+                setMessage(&msg_next, msg.next_program_segment);
                 exit();
             }
             i++;
         }
     } else if (strcmp(path, "/")) {
         msg.current_directory = FS_NODE_P_IDX_ROOT;
-        setMessage(&msg);
+        msg_next.current_directory = msg.current_directory;
+        setMessage(&msg_next, msg.next_program_segment);
     } else {
         while (i < path_length) {
             while (path[i] != '/' && path[i] != '\0') {
@@ -81,7 +85,8 @@ int main() {
             exit();
         }
         msg.current_directory = tempdst;
-        setMessage(&msg);
+        msg_next.current_directory = msg.current_directory;
+        setMessage(&msg_next, msg.next_program_segment);
     }
 
     exit();

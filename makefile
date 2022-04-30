@@ -1,5 +1,5 @@
 # Makefile
-LIBRARY := out/string.o out/textio.o out/fileio.o out/program.o out/lib_interrupt.o out/message.o
+LIBRARY := out/string.o out/textio.o out/fileio.o out/program.o out/lib_interrupt.o out/message.o out/utils.o
 
 all: diskimage bootloader lib kernel app program
 
@@ -18,6 +18,7 @@ lib:
 	bcc -ansi -c -o out/fileio.o src/c/fileio.c
 	bcc -ansi -c -o out/program.o src/c/program.c
 	bcc -ansi -c -o out/message.o src/c/message.c
+	nasm -f as86 src/asm/utils.asm -o out/utils.o
 
 kernel:
 	bcc -ansi -c -o out/kernel.o src/c/kernel.c

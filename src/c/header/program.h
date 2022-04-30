@@ -3,6 +3,7 @@
 
 #include "std_type.h"
 #include "filesystem.h"
+#include "message.h"
 
 extern int interrupt(int int_number, int AX, int BX, int CX, int DX);
 
@@ -11,10 +12,5 @@ void exec(struct file_metadata *metadata, int segment);
 
 void exit();
 // exit the program
-
-// set message
-void setMessage(struct message *msg);
-
-void getMessage(struct message *msg);
 
 #endif

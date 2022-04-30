@@ -2,14 +2,11 @@
 // PENTING : FUNGSI PERTAMA YANG DIDEFINISIKAN ADALAH main(),
 //   cek spesifikasi untuk informasi lebih lanjut
 
-// TODO : Tambahkan implementasi kode C
-
 #include "header/kernel.h"
 
 int main() {
     struct file_metadata meta;
-    byte root[512];
-    root[0] = 0xFF;
+    struct message msg_shell;
     fillMap();
     makeInterrupt21();
     interrupt(0x10, 0x0010, 0x0, 0x0, 0x0);
@@ -24,10 +21,12 @@ int main() {
     interrupt(0x21, 0xB, "===     === ===  ===   ===   ===  === ===  ===  ======  ====== \n", YELLOW, 0x0);
     interrupt(0x21, 0xB, "\nMaya siap membantu Trainer-chan, You Copy?! ( ^ w ^)7\r\n", BROWN, 0x0);
 
-    writeSector(root, 0x104);
-
+    // message shell
+    msg_shell.current_directory = 0xFF;
+    writeSector(&msg_shell, 0x105);
+    
     meta.node_name = "shell";
-    meta.parent_index = 0;
+    meta.parent_index = 0x0;
     executeProgram(&meta, 0x2000);
 
     shell();
@@ -80,7 +79,7 @@ int handleInterrupt21(int AX, int BX, int CX, int DX) {
         printNumber(BX);
         break;
     case 0xE:
-        exit();
+        // reserved
         break;
     case 0xF:
         executeProgram(BX, CX);
@@ -106,13 +105,6 @@ void executeProgram(struct file_metadata *metadata, int segment) {
         launchProgram(segment);
     } else
         printString("execute: Trainer-chan!! file tidak ditemukan!!\r\n");
-}
-
-void exit() {
-    struct file_metadata shell;
-    shell.node_name = "shell";
-    shell.parent_index = 0;
-    executeProgram(&shell, 0x4000);
 }
 
 void clearScreen() {

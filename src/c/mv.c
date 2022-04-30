@@ -13,11 +13,15 @@ int main() {
     byte current_dir;
     struct node_filesystem node_fs_buffer;
     struct message msg;
+    struct message msg_next;
     char first_arg[19];
     char second_arg[19];
     char *input_buf;
 
-    getMessage(&msg);
+    getMessage(&msg, getCurrentSegment());
+    getMessage(&msg_next, msg.next_program_segment);
+    msg_next.current_directory = msg.current_directory;
+    setMessage(&msg_next, msg.next_program_segment);
     current_dir = msg.current_directory;
     input_buf = msg.arg1;
 
