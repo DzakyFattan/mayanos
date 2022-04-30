@@ -5,7 +5,7 @@
 #include "header/std_type.h"
 #include "header/textio.h"
 #include "header/utils.h"
-#include "string.h"
+#include "header/string.h"
 
 int main() {
     int i, j;

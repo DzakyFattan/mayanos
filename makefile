@@ -42,6 +42,8 @@ program: lib
 	ld86 -o out/mv -d out/mv.o $(LIBRARY)
 	bcc -ansi -c -o out/echo.o src/c/echo.c
 	ld86 -o out/echo -d out/echo.o $(LIBRARY)
+	bcc -ansi -c -o out/sayang.o src/c/sayang.c
+	ld86 -o out/sayang -d out/sayang.o $(LIBRARY)
 
 tcgen:
 	gcc tc_gen/tc_gen.c tc_gen/tc_lib -o out/tc_gen
