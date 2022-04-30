@@ -1,16 +1,16 @@
 #include "header/program.h"
 
 void exec(struct file_metadata *metadata, int segment) {
-    enum fs_retcode fs_ret;
-    byte buf[8192];
-    metadata->buffer = buf;
-    read(metadata, &fs_ret);
-    if (fs_ret != FS_SUCCESS) {
-        puts("exec: Trainer-chan!! file tidak ditemukan!!\r\n");
-        (*metadata).node_name = "shell";
-        (*metadata).parent_index = 0x0;
-        interrupt(0x21, 0xF, metadata, segment, 0);
-    }
+    // enum fs_retcode fs_ret;
+    // byte buf[8192];
+    // metadata->buffer = buf;
+    // read(metadata, &fs_ret);
+    // if (fs_ret != FS_SUCCESS) {
+    //     puts("exec: Trainer-chan!! file tidak ditemukan!!\r\n");
+    //     (*metadata).node_name = "shell";
+    //     (*metadata).parent_index = 0x0;
+    //     interrupt(0x21, 0xF, metadata, segment, 0);
+    // }
 
     interrupt(0x21, 0xF, metadata, segment, 0);
 }
