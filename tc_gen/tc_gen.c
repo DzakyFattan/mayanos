@@ -80,6 +80,7 @@ void shell_utils(byte buf[2880][512]) {
     create_folder(buf, "mayano", 0x1);
     create_folder(buf, "top", 0x1);
     create_folder(buf, "gun", 0x1);
+    insert_file(buf, "echo", 0x1);
 }
 
 int main(int argc, char const *argv[]) {

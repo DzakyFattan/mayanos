@@ -1,10 +1,10 @@
 #include "header/color.h"
 #include "header/filesystem.h"
 #include "header/message.h"
+#include "header/program.h"
 #include "header/std_type.h"
 #include "header/string.h"
 #include "header/textio.h"
-#include "header/program.h"
 
 void bufferToMessage(char *input_buf, struct message *msg);
 
@@ -29,7 +29,8 @@ int main() {
         interrupt(0x21, 0xC, current_dir, 0, 0);
         puts("$ ");
 
-        for (j = 0; j < 64; j++) input_buf[j] = '\0';
+        for (j = 0; j < 64; j++)
+            input_buf[j] = '\0';
         gets(input_buf);
         parseMultiProgram(input_buf, current_dir);
 
@@ -39,7 +40,7 @@ int main() {
         }
         command[i] = '\0';
         i++;
-        
+
         if (strcmp(command, "exit")) {
             puts("\nTrainer-chan mau pergi? :( Kapan-kapan main ke sini lagi ya! ( ^ w ^) <3\r\n");
         } else if (strcmp(command, "ls")) {
@@ -66,6 +67,10 @@ int main() {
             meta.node_name = "mv";
             meta.parent_index = 0x00; // bin
             exec(&meta, 0x4000);
+        } else if (input_buf[0] == '.' && input_buf[1] == '/') {
+            strcpy(meta.node_name, command + 2);
+            meta.parent_index = current_dir;
+            exec(&meta, 0x4000);
         } else if (strcmp(input_buf, "Aku sayang sama Maya-chin")) {
             putsColor("Hehe, Maya juga sayang sama Trainer-chan ( ^ w ^) <3<3<3\r\n", BROWN);
         } else {
@@ -77,7 +82,6 @@ int main() {
         i = 0;
         j = 0;
     }
-    
 }
 
 void bufferToMessage(char *input_buf, struct message *msg) {
@@ -151,7 +155,7 @@ void parseMultiProgram(char *input_buf, byte current_dir) {
     char program[64];
     char command[9];
     int current_segment = 0x4000;
-    
+
     // cek apakah multi program
     for (i = 0; i < 64; i++) {
         if (input_buf[i] == ';') {
@@ -165,7 +169,7 @@ void parseMultiProgram(char *input_buf, byte current_dir) {
         // parse command
         bufferToMessage(input_buf, &msg);
         msg.current_directory = current_dir;
-        msg.next_program_segment = 0x2000;  // shell
+        msg.next_program_segment = 0x2000; // shell
         setMessage(&msg, current_segment);
         i = 0;
         while (input_buf[i] != ' ') {
@@ -176,7 +180,8 @@ void parseMultiProgram(char *input_buf, byte current_dir) {
         i = 0;
         while (input_buf[i] != '\0') {
             // clear buffer
-            for (j = 0; j < 64; j++) program[j] = '\0';
+            for (j = 0; j < 64; j++)
+                program[j] = '\0';
 
             j = 0;
             // copy command + arg
@@ -187,10 +192,12 @@ void parseMultiProgram(char *input_buf, byte current_dir) {
             }
             i += 2;
 
-            if (program[j] == ' ') program[j] = '\0';
+            if (program[j] == ' ')
+                program[j] = '\0';
 
             // copy next command
-            for (j = 0; j < 9; j++) command[j] = '\0';
+            for (j = 0; j < 9; j++)
+                command[j] = '\0';
             j = 0;
             while (input_buf[i] != ' ' && input_buf[i] != '\0') {
                 command[j] = input_buf[i];
