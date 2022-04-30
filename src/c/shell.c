@@ -71,7 +71,7 @@ int main() {
             strcpy(meta.node_name, command + 2);
             meta.parent_index = current_dir;
             exec(&meta, 0x4000);
-        } else if (strcmp(input_buf, "Aku sayang sama Maya-chin")) {
+        } else if (strcmp(input_buf, "Aku sayang sama Maya-chin") || strcmp(input_buf, "sayang")) {
             putsColor("Hehe, Maya juga sayang sama Trainer-chan ( ^ w ^) <3<3<3\r\n", BROWN);
         } else {
             putsColor("Maya ngga ngerti perintah Trainer-chan (# -_-)\r\n", BROWN);

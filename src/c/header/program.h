@@ -4,6 +4,7 @@
 #include "std_type.h"
 #include "filesystem.h"
 #include "message.h"
+#include "fileio.h"
 
 extern int interrupt(int int_number, int AX, int BX, int CX, int DX);
 

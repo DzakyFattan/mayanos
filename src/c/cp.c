@@ -9,11 +9,11 @@
 
 int main() {
     int i, j;
-    char file_source[16];
+    char *file_source;
     char *copy_name = "_copy\0";
     char *input_buf;
-    char file_dest[16];
-    byte buffer[4096];
+    char *file_dest;
+    byte buffer[8192];
     byte current_dir;
     enum fs_retcode return_code;
     struct file_metadata metadata;
@@ -24,38 +24,17 @@ int main() {
     getMessage(&msg_next, msg.next_program_segment);
     msg_next.current_directory = msg.current_directory;
     setMessage(&msg_next, msg.next_program_segment);
+
     current_dir = msg.current_directory;
-    input_buf = msg.arg1;
 
     return_code = 0;
-    for (i = 0; i < 16; i++) {
-        file_source[i] = '\0';
-        file_dest[i] = '\0';
-    }
+    file_source = msg.arg1;
+    file_dest = msg.arg2;
 
     i = 2;
-    while (input_buf[i] == ' ' && input_buf[i] != '\0')
-        i++;
-    if (input_buf[i] == '\0') {
+    if (file_source[0] == '\0') {
         puts("cp: Trainer-chan!! File asal tidak diberikan!\n");
         exit();
-    }
-
-    j = 0;
-    while (input_buf[i] != ' ' && input_buf[i] != '\0') {
-        file_source[j] = input_buf[i];
-        i++;
-        j++;
-    }
-
-    while (input_buf[i] == ' ')
-        i++;
-
-    j = 0;
-    while (input_buf[i] != '\0' && input_buf[i] != ' ') {
-        file_dest[j] = input_buf[i];
-        i++;
-        j++;
     }
 
     if (strlen(file_dest) == 0) {
@@ -74,7 +53,7 @@ int main() {
 
     if (strlen(file_dest) == strlen(file_source)) {
         if (strcmp(file_dest, file_source)) {
-            puts("mv: Trainer-chan!! Nama file asal sama dengan nama file tujuan!\n");
+            puts("cp: Trainer-chan!! Nama file asal sama dengan nama file tujuan!\n");
             exit();
         }
     }
@@ -86,7 +65,7 @@ int main() {
     read(&metadata, &return_code);
 
     if (return_code != 0) {
-        puts("mv: Trainer-chan!! Baca file asal gagal dengan kode error ");
+        puts("cp: Trainer-chan!! Baca file asal gagal dengan kode error ");
         putsNumber(return_code);
         puts("\n");
         exit();
@@ -98,7 +77,7 @@ int main() {
     write(&metadata, &return_code);
 
     if (return_code != 0) {
-        puts("Tulis file tujuan gagal dengan kode error ");
+        puts("cp: Trainer-chan!! Tulis file tujuan gagal dengan kode error ");
         putsNumber(return_code);
         puts("\n");
         exit();

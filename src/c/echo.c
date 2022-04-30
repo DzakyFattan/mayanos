@@ -10,10 +10,19 @@
 int main() {
     char *input;
     struct message msg;
+    struct message msg_next;
     getMessage(&msg, getCurrentSegment());
-    input = msg.arg1;
+    getMessage(&msg_next, msg.next_program_segment);
+    msg_next.current_directory = msg.current_directory;
+    setMessage(&msg_next, msg.next_program_segment);
 
-    puts(input);
+    puts(msg.arg1);
+    puts(" ");
+    puts(msg.arg2);
+    puts(" ");
+    puts(msg.arg3);
+    puts(" ");
+    puts(msg.arg4);
     puts("\n");
     exit();
 }

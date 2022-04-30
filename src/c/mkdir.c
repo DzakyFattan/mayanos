@@ -28,7 +28,7 @@ int main() {
     input_buf = msg.arg1;
 
     if (strcmp(input_buf, "")) {
-        puts("cp: Trainer-chan!! Nama folder tidak diberikan!\n");
+        puts("mkdir: Trainer-chan!! Nama folder tidak diberikan!\n");
         exit();
     }
 
