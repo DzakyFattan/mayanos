@@ -21,8 +21,6 @@ void fillMap();
 void executeProgram(struct file_metadata *metadata, int segment);
 void exit();
 
-void showCursorPosition();
-
 // read-write string
 void printString(char *string);
 void printColor(char *string, int color);
@@ -39,15 +37,4 @@ void readSector(byte *buffer, int sector_number);
 void write(struct file_metadata *metadata, enum fs_retcode *return_code);
 void read(struct file_metadata *metadata, enum fs_retcode *return_code);
 
-// commands
-void shell();
 void printCWD(byte current_dir);
-
-void cd(char *path_str, byte *current_dir);
-void ls(byte current_dir);
-void copy(char *input_buf, byte current_dir);
-void mkdir(char *input_buf, byte current_dir);
-void cat(char *input_buf, byte current_dir);
-void move(char *input_buf, byte current_dir);
-
-void scrollController(int lines);

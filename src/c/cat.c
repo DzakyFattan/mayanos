@@ -15,7 +15,6 @@ int main() {
 
     int input, num;
     int upLimit, downLimit;
-    int scrollAmount = 0;
 
     struct file_metadata metadata;
     struct message msg;
@@ -95,7 +94,7 @@ int main() {
             if (input == 0x48 && upLimit > 0) {
                 upLimit--;
                 downLimit--;
-                interrupt(0x10, 0x0701, 0x0, 0x0000, 0x1549);
+                interrupt(0x10, 0x0701, 0x0, 0x0000, 0x1550);
                 interrupt(0x10, 0x0200, 0x0, 0x0, 0x0000);
                 for (i = upLimit; i <= upLimit + 21; i++) {
                     interrupt(0x10, 0x0A00 + ' ', 0x0, 80, 0x0);
@@ -106,7 +105,7 @@ int main() {
             } else if (input == 0x50 && downLimit < line_track) {
                 upLimit++;
                 downLimit++;
-                interrupt(0x10, 0x0601, 0x0, 0x0000, 0x1549);
+                interrupt(0x10, 0x0601, 0x0, 0x0000, 0x1550);
                 interrupt(0x10, 0x0200, 0x0, 0x0, 0x1500);
                 puts(lines[downLimit]);
             }
