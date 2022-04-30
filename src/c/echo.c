@@ -8,12 +8,12 @@
 #include "string.h"
 
 int main() {
-    // char *input;
-    // struct message msg;
-    // getMessage(&msg, getCurrentSegment());
-    // input = msg.arg1;
+    char *input;
+    struct message msg;
+    getMessage(&msg, getCurrentSegment());
+    input = msg.arg1;
 
-    // puts(input);
-    puts("Hello World!\n");
+    puts(input);
+    puts("\n");
     exit();
 }
