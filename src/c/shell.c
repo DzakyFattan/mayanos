@@ -16,7 +16,6 @@ int main() {
     char command[16];
     int i = 0;
     int j = 0;
-    int scrollLine;
     struct message msg;
     struct file_metadata meta;
     byte current_dir;
